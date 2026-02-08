@@ -6,7 +6,7 @@ function HomePage() {
     <div className={styles.home}>
       <h1>Моделюючий комплекс</h1>
       <p>Оберіть інструмент:</p>
-      <Link to="/afdk">Перейти до Gatify</Link>
+      <Link to="/gatify">Перейти до Gatify</Link>
     </div>
   );
 }
