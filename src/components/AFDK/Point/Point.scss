@@ -1,0 +1,38 @@
+.point {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%; // ⭐ Круг для INPUT точок
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 9px;
+  cursor: pointer;
+  border: 3px solid #007acc;
+  background-color: white;
+  color: #000000;
+  user-select: none;
+  z-index: 100;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow: 0 3px 10px rgba(0, 122, 204, 0.4);
+  }
+
+  &:active {
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+
+  &.selected {
+    border-color: #ff9800;
+    box-shadow: 0 0 15px rgba(255, 152, 0, 0.8);
+    z-index: 101;
+  }
+
+  // ⭐ КВАДРАТНА ФОРМА ДЛЯ OUTPUT ТОЧОК
+  &.output {
+    border-radius: 0; // Прибираємо закруглення = квадрат
+  }
+}

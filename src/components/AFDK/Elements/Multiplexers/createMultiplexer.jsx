@@ -1,0 +1,316 @@
+const ELEMENT_WIDTH = 120;
+const WIRE_LENGTH = 20;
+
+export const createMultiplexer = (id, type, x, y) => {
+  // MUX 2:1
+  if (type === "MUX2") {
+    const height = 80; // -20 до 20 + відступи 20px зверху і знизу = 80
+    const width = 100;
+    return {
+      id,
+      type,
+      x,
+      y,
+      width,
+      height,
+      inputCount: 3,
+      inputs: [
+        {
+          id: `${id}-input-0`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: -20,
+          wireEndX: -width / 2,
+          wireEndY: -20,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I0",
+        },
+        {
+          id: `${id}-input-1`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: 0,
+          wireEndX: -width / 2,
+          wireEndY: 0,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I1",
+        },
+        {
+          id: `${id}-input-2`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: 20,
+          wireEndX: -width / 2,
+          wireEndY: 20,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "S",
+        },
+      ],
+      outputs: [
+        {
+          id: `${id}-output-0`,
+          localX: width / 2,
+          localY: -20, // На рівні I0
+          wireEndX: width / 2 + WIRE_LENGTH,
+          wireEndY: -20,
+          value: 0,
+          connected: false,
+          inverted: false,
+          label: "Y",
+        },
+      ],
+    };
+  }
+
+  // MUX 4:1
+  if (type === "MUX4") {
+    const height = 140; // -50 до 50 (100px) + відступи 20px зверху і знизу = 140
+    const width = 120;
+    return {
+      id,
+      type,
+      x,
+      y,
+      width,
+      height,
+      inputCount: 6,
+      inputs: [
+        {
+          id: `${id}-input-0`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: -50,
+          wireEndX: -width / 2,
+          wireEndY: -50,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I0",
+        },
+        {
+          id: `${id}-input-1`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: -30,
+          wireEndX: -width / 2,
+          wireEndY: -30,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I1",
+        },
+        {
+          id: `${id}-input-2`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: -10,
+          wireEndX: -width / 2,
+          wireEndY: -10,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I2",
+        },
+        {
+          id: `${id}-input-3`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: 10,
+          wireEndX: -width / 2,
+          wireEndY: 10,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I3",
+        },
+        {
+          id: `${id}-input-4`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: 30,
+          wireEndX: -width / 2,
+          wireEndY: 30,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "S0",
+        },
+        {
+          id: `${id}-input-5`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: 50,
+          wireEndX: -width / 2,
+          wireEndY: 50,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "S1",
+        },
+      ],
+      outputs: [
+        {
+          id: `${id}-output-0`,
+          localX: width / 2,
+          localY: -50, // На рівні I0
+          wireEndX: width / 2 + WIRE_LENGTH,
+          wireEndY: -50,
+          value: 0,
+          connected: false,
+          inverted: false,
+          label: "Y",
+        },
+      ],
+    };
+  }
+
+  // MUX 8:1
+  if (type === "MUX8") {
+    const height = 240; // -100 до 100 + відступи 20px зверху і знизу = 240
+    const width = 140;
+    return {
+      id,
+      type,
+      x,
+      y,
+      width,
+      height,
+      inputCount: 11,
+      inputs: [
+        {
+          id: `${id}-input-0`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: -100,
+          wireEndX: -width / 2,
+          wireEndY: -100,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I0",
+        },
+        {
+          id: `${id}-input-1`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: -80,
+          wireEndX: -width / 2,
+          wireEndY: -80,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I1",
+        },
+        {
+          id: `${id}-input-2`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: -60,
+          wireEndX: -width / 2,
+          wireEndY: -60,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I2",
+        },
+        {
+          id: `${id}-input-3`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: -40,
+          wireEndX: -width / 2,
+          wireEndY: -40,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I3",
+        },
+        {
+          id: `${id}-input-4`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: -20,
+          wireEndX: -width / 2,
+          wireEndY: -20,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I4",
+        },
+        {
+          id: `${id}-input-5`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: 0,
+          wireEndX: -width / 2,
+          wireEndY: 0,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I5",
+        },
+        {
+          id: `${id}-input-6`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: 20,
+          wireEndX: -width / 2,
+          wireEndY: 20,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I6",
+        },
+        {
+          id: `${id}-input-7`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: 40,
+          wireEndX: -width / 2,
+          wireEndY: 40,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "I7",
+        },
+        {
+          id: `${id}-input-8`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: 60,
+          wireEndX: -width / 2,
+          wireEndY: 60,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "S0",
+        },
+        {
+          id: `${id}-input-9`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: 80,
+          wireEndX: -width / 2,
+          wireEndY: 80,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "S1",
+        },
+        {
+          id: `${id}-input-10`,
+          localX: -width / 2 - WIRE_LENGTH,
+          localY: 100,
+          wireEndX: -width / 2,
+          wireEndY: 100,
+          value: 0,
+          inverted: false,
+          connected: false,
+          label: "S2",
+        },
+      ],
+      outputs: [
+        {
+          id: `${id}-output-0`,
+          localX: width / 2,
+          localY: -100, // На рівні I0
+          wireEndX: width / 2 + WIRE_LENGTH,
+          wireEndY: -100,
+          value: 0,
+          connected: false,
+          inverted: false,
+          label: "Y",
+        },
+      ],
+    };
+  }
+
+  return null;
+};

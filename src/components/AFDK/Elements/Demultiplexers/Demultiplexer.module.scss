@@ -1,0 +1,15 @@
+.demultiplexer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.port {
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+  }
+}

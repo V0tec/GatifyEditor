@@ -1,0 +1,9 @@
+.clock {
+  &:hover {
+    filter: brightness(1.1);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}

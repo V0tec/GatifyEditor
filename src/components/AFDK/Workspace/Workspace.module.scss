@@ -1,0 +1,71 @@
+.workspace {
+  flex: 1;
+  background-color: #1e1e1e;
+  padding: 10px;
+  position: relative;
+
+  // Оптимізація без впливу на координати
+  contain: layout style paint;
+
+  color: white;
+
+  // Стилі для режиму проводу
+  &.wireMode {
+    cursor: crosshair; // Змінюємо курсор в режимі проводу
+
+    // Можна додати візуальний індикатор
+    &::before {
+      content: "Режим малювання проводу - клікайте для створення точок, Escape для завершення";
+      position: absolute;
+      top: 50px;
+      left: 10px;
+      background: rgba(0, 122, 204, 0.9);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 12px;
+      z-index: 1001;
+      pointer-events: none;
+    }
+  }
+}
+
+.wire {
+  position: absolute;
+  background: #333; // Темніший колір для кращої видимості
+  z-index: 1; // Під елементами
+
+  &.right,
+  &.left {
+    height: 2px;
+  }
+
+  &.up,
+  &.down {
+    width: 2px;
+  }
+}
+
+// Стилі для кнопки у хедері
+.activeWireButton {
+  background-color: #007acc !important;
+  color: white !important;
+}
+
+// ⭐ Блокування всіх елементів в режимі проводу
+.workspace.wireMode {
+  // Блокуємо всі компоненти
+  .element,
+  .trigger,
+  .clock,
+  .point {
+    pointer-events: none !important;
+    cursor: default !important;
+
+    &:hover {
+      transform: none !important;
+      border-color: inherit !important;
+      box-shadow: none !important;
+    }
+  }
+}

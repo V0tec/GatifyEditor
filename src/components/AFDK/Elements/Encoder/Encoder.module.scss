@@ -1,0 +1,11 @@
+.encoder {
+  // Базові стилі вже в inline
+}
+
+.port {
+  transition: all 0.2s;
+
+  &:hover {
+    transform: scale(1.2);
+  }
+}

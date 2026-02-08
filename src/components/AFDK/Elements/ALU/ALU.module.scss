@@ -1,0 +1,11 @@
+.alu {
+  // Базові стилі вже в inline styles
+}
+
+.port {
+  transition: all 0.2s;
+
+  &:hover {
+    transform: scale(1.2);
+  }
+}
