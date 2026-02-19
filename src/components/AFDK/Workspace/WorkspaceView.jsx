@@ -65,13 +65,15 @@ const WorkspaceView = ({
   closeAllMenus,
   workspaceOptions,
   elementOptions,
+
+  isSimulating,
 }) => {
   return (
     <div
       ref={workspaceRef}
       className={`${styles.workspace} ${isWireMode ? styles.wireMode : ""} ${
         isPointMode ? styles.pointMode : ""
-      }`}
+      } ${isSimulating ? styles.simulationMode : ""}`}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onMouseDown={handleMouseDownWorkspace}
@@ -454,9 +456,11 @@ const WorkspaceView = ({
             isSelected={selectedPointIds.includes(point.id)}
             isPointMode={isPointMode}
             isWireMode={isWireMode}
+            isSimulating={isSimulating} // ⬅️ ДОДАЙ
             onMouseDown={handleMouseDownElement}
             onContextMenu={handleElementContext}
             onLabelChange={handlePointLabelChange}
+            onToggle={handlePointToggle} // ⬅️ ПЕРЕКОНАЙСЯ ЩО ЦЕ ПЕРЕДАЄТЬСЯ
           />
         ))}
       </div>

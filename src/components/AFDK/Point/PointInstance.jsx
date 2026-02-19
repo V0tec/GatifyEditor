@@ -1,11 +1,11 @@
-import Point from "./Point";
+import Point from "./Point"; // ⬅️ ДОДАЙ ЦЕЙ ІМПОРТ
 
-// PointInstance.jsx
 const PointInstance = ({
   point,
   isSelected,
   isPointMode,
   isWireMode,
+  isSimulating, // ⬅️ ДОДАЙ ПРОП
   onMouseDown,
   onContextMenu,
   onLabelChange,
@@ -18,14 +18,19 @@ const PointInstance = ({
       onLabelChange={onLabelChange}
       onToggle={onToggle}
       onMouseDown={(e) => {
-        // ⭐ В РЕЖИМІ ПРОВОДУ - НЕ БЛОКУЄМО PROPAGATION!
-        if (isWireMode) {
-          // Дозволяємо події піти далі до workspace
-          return; // НЕ викликаємо e.stopPropagation()!
-        }
+        if (isWireMode) return;
 
         e.preventDefault();
         e.stopPropagation();
+
+        // ⭐ В режимі симуляції — тільки toggle, не drag
+        if (isSimulating) {
+          if (point.type === "input") {
+            onToggle?.(point.id);
+          }
+          return;
+        }
+
         onMouseDown?.(e, point.id);
       }}
       onContextMenu={(e) => {

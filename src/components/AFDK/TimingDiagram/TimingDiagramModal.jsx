@@ -14,6 +14,7 @@ function TimingDiagramModal({
   onRunSimulation,
   onTogglePoint,
   simulationCounter, // ⭐ НОВИЙ ПРОП
+  isSimulating,
 }) {
   const [selectedPoints, setSelectedPoints] = useState([]);
   const [ticks, setTicks] = useState([]);
@@ -79,13 +80,13 @@ function TimingDiagramModal({
       return;
     }
 
-    // Змінюємо значення точки
+    // ⭐ ВСЯ ЛОГІКА В onTogglePoint:
+    // - Змінює point.value
+    // - Додає подію в чергу
+    // - Автосимуляція обробляє
     onTogglePoint(pointId);
 
-    // Запускаємо симуляцію
-    onRunSimulation();
-
-    // Ставимо прапорець
+    // Ставимо прапорець для додавання тіку
     shouldAddTick.current = true;
   };
 

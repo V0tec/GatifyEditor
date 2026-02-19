@@ -108,6 +108,28 @@ function AFDK() {
     );
   };
 
+  // ⭐ НОВА ФУНКЦІЯ: перемикання точки + додавання в чергу симуляції
+  const handleTogglePointWithSimulation = useCallback(
+    (pointId) => {
+      // 1. Знаходимо точку
+      const point = points.find((p) => p.id === pointId);
+      if (!point || point.type !== "input") return;
+
+      const newValue = point.value === 1 ? 0 : 1;
+
+      // 2. Оновлюємо стейт
+      setPoints((prev) =>
+        prev.map((p) => (p.id === pointId ? { ...p, value: newValue } : p)),
+      );
+
+      // 3. Викликаємо глобальну функцію (додає подію в чергу)
+      if (window.__restartFromPoint && isSimulating) {
+        window.__restartFromPoint(pointId, newValue);
+      }
+    },
+    [points, isSimulating],
+  );
+
   const handleSave = () => {
     const schemeData = {
       components: components,
@@ -325,8 +347,9 @@ function AFDK() {
         junctions={junctions}
         components={components}
         onRunSimulation={handleRunSimulation}
-        onTogglePoint={handleTogglePoint}
+        onTogglePoint={handleTogglePointWithSimulation}
         simulationCounter={simulationCounter}
+        isSimulating={isSimulating}
       />
 
       <input

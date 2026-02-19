@@ -69,3 +69,10 @@
     }
   }
 }
+
+.simulationMode {
+  // Курсор показує що редагування заблоковане
+  & * {
+    cursor: default !important;
+  }
+}

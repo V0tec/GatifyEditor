@@ -656,32 +656,108 @@ const calculateComponentLogic = (components) => {
       comp.type === "RAM_256x8" ||
       comp.type === "RAM_256x8_CS"
     ) {
-      result = config.logic(inputValues, comp.state);
-      updatedState = result;
+      const logicResult = config.logic(inputValues, comp.state);
 
-      const dataBits = comp.type === "RAM_16x4" ? 4 : 8;
+      // ⭐ ЛОГУВАННЯ ДЛЯ ДІАГНОСТИКИ
+      console.log(`  📊 RAM logic результат:`, logicResult);
+      if (logicResult && logicResult.outputs) {
+        console.log(`  📊 outputs array:`, logicResult.outputs);
+        console.log(`  📊 outputs[0] type:`, typeof logicResult.outputs[0]);
+        console.log(`  📊 outputs[0] value:`, logicResult.outputs[0]);
+      }
 
-      // Оновлюємо виходи на основі стану
-      const updatedOutputs = comp.outputs.map((output, index) => {
-        const stateKey = `Q${index}`;
-        const baseValue = updatedState[stateKey] ?? 0;
-        const isInverted = output.inverted || false;
-        const finalValue = isInverted ? (baseValue === 1 ? 0 : 1) : baseValue;
-        const hasConnectedInputs = comp.inputs.some((inp) => inp.connected);
+      // ⭐ Перевіряємо новий формат {state, outputs}
+      if (
+        logicResult &&
+        logicResult.state &&
+        Array.isArray(logicResult.outputs)
+      ) {
+        console.log(`  ✅ Новий формат RAM виявлено`);
 
-        return {
-          ...output,
-          value: finalValue,
-          connected: hasConnectedInputs,
+        // Новий формат RAM
+        updatedState = logicResult.state;
+
+        const updatedOutputs = comp.outputs.map((output, index) => {
+          const baseValue = logicResult.outputs[index] ?? 0;
+
+          console.log(
+            `    📌 Вихід ${index}: baseValue = ${baseValue} (type: ${typeof baseValue})`,
+          );
+
+          const isInverted = output.inverted || false;
+          const finalValue = isInverted ? (baseValue === 1 ? 0 : 1) : baseValue;
+          const hasConnectedInputs = comp.inputs.some((inp) => inp.connected);
+
+          return {
+            ...output,
+            value: finalValue,
+            connected: hasConnectedInputs,
+          };
+        });
+
+        console.log(`  📌 updatedOutputs:`, updatedOutputs);
+
+        const outputsChanged = updatedOutputs.some(
+          (output, i) => output.value !== comp.outputs[i].value,
+        );
+
+        if (outputsChanged) {
+          console.log(`  ✅ Виходи змінились! Додаємо в чергу`);
+          newQueue.push({
+            type: "from_component",
+            componentId: comp.id,
+          });
+        } else {
+          console.log(`  ⏭️ Виходи не змінились`);
+        }
+
+        updatedComponents[compIndex] = {
+          ...comp,
+          outputs: updatedOutputs,
+          state: updatedState,
         };
-      });
+      } else {
+        console.log(`  ⚠️ Старий формат RAM або невалідний результат`);
 
-      return {
-        ...comp,
-        inputs: comp.inputs,
-        outputs: updatedOutputs,
-        state: updatedState,
-      };
+        // Старий формат (сумісність)
+        updatedState = logicResult;
+
+        const dataBits = comp.type === "RAM_16x4" ? 4 : 8;
+
+        const updatedOutputs = comp.outputs.map((output, index) => {
+          const stateKey = `Q${index}`;
+          const baseValue = updatedState[stateKey] ?? 0;
+          const isInverted = output.inverted || false;
+          const finalValue = isInverted ? (baseValue === 1 ? 0 : 1) : baseValue;
+          const hasConnectedInputs = comp.inputs.some((inp) => inp.connected);
+
+          return {
+            ...output,
+            value: finalValue,
+            connected: hasConnectedInputs,
+          };
+        });
+
+        const outputsChanged = updatedOutputs.some(
+          (output, i) => output.value !== comp.outputs[i].value,
+        );
+
+        if (outputsChanged) {
+          console.log(`  ✅ Виходи змінились! Додаємо в чергу`);
+          newQueue.push({
+            type: "from_component",
+            componentId: comp.id,
+          });
+        } else {
+          console.log(`  ⏭️ Виходи не змінились`);
+        }
+
+        updatedComponents[compIndex] = {
+          ...comp,
+          outputs: updatedOutputs,
+          state: updatedState,
+        };
+      }
     }
 
     // ========== ALU ==========
@@ -709,21 +785,34 @@ const calculateComponentLogic = (components) => {
     }
 
     // ========== ROM ==========
-    if (
+    else if (
       comp.type === "ROM_16x4" ||
       comp.type === "ROM_16x8" ||
       comp.type === "ROM_256x8" ||
       comp.type === "ROM_256x8_CS"
     ) {
-      result = config.logic(inputValues, comp.state);
-      updatedState = result;
+      const logicResult = config.logic(inputValues, comp.state);
+
+      console.log(`  📊 ROM logic результат:`, logicResult);
+      if (logicResult && logicResult.Q0 !== undefined) {
+        console.log(`  📊 ROM має Q0, Q1... формат`);
+        console.log(`  📊 Q0 type:`, typeof logicResult.Q0);
+        console.log(`  📊 Q0 value:`, logicResult.Q0);
+      }
+
+      // ROM повертає {memory, Q0, Q1, Q2, ...}
+      updatedState = logicResult;
 
       const dataBits = comp.type === "ROM_16x4" ? 4 : 8;
 
-      // Оновлюємо виходи на основі стану
-      const updatedOutputs = comp.outputs.map((output, index) => {
+      updatedOutputs = comp.outputs.map((output, index) => {
         const stateKey = `Q${index}`;
         const baseValue = updatedState[stateKey] ?? 0;
+
+        console.log(
+          `    📌 ROM Вихід ${index}: Q${index} = ${baseValue} (type: ${typeof baseValue})`,
+        );
+
         const isInverted = output.inverted || false;
         const finalValue = isInverted ? (baseValue === 1 ? 0 : 1) : baseValue;
         const hasConnectedInputs = comp.inputs.some((inp) => inp.connected);
@@ -735,12 +824,7 @@ const calculateComponentLogic = (components) => {
         };
       });
 
-      return {
-        ...comp,
-        inputs: comp.inputs,
-        outputs: updatedOutputs,
-        state: updatedState,
-      };
+      console.log(`  📌 ROM updatedOutputs:`, updatedOutputs);
     }
 
     // ========== ENCODER ==========
@@ -904,295 +988,864 @@ const propagateFromComponentOutputs = (components, wires, activeGroupsMap) => {
 /**
  * ГОЛОВНА ФУНКЦІЯ: Пускає сигнал від точки по проводах з урахуванням Junction, продовжень та компонентів
  */
-export const propagateSignalFromPoints = (
-  points,
-  wires,
-  junctions = [],
-  components = [],
-) => {
-  const MAX_ITERATIONS = 100;
-  let iteration = 0;
-  let allConflicts = [];
 
-  let activeGroupsMap = new Map();
-  let processedGroups = new Set();
-  let previousConflictSignature = ""; // ⭐ НОВИЙ
+/**
+ * ІНІЦІАЛІЗАЦІЯ СИМУЛЯЦІЇ - створює початкову чергу від INPUT точок
+ */
+export const initializeSimulation = (points, wires, components) => {
+  const updateQueue = [];
+  const activeGroupsMap = new Map();
+  const processedElements = {
+    wireGroups: new Set(),
+    components: new Set(),
+    points: new Set(),
+  };
 
-  // ===== КРОК 1: Активація від точок =====
   const inputPoints = points.filter((point) => point.type === "input");
 
+  console.log(`\n🎬 ІНІЦІАЛІЗАЦІЯ: INPUT точок: ${inputPoints.length}`);
+
   inputPoints.forEach((point) => {
-    const touchedWires = findWiresTouchedByPoint(point, wires);
-    if (touchedWires.length === 0) return;
+    console.log(
+      `  ➕ Додаємо точку ${point.id} (value=${point.value}) в чергу`,
+    );
+    updateQueue.push({
+      type: "from_point",
+      point: point,
+      value: point.value,
+    });
+  });
 
-    const initialGroups = [...new Set(touchedWires.map((w) => w.wireGroupId))];
-    const groupsToProcess = [...initialGroups];
+  console.log(`📋 Початкова черга: ${updateQueue.length} подій\n`);
 
-    while (groupsToProcess.length > 0) {
-      const currentGroupId = groupsToProcess.shift();
-      if (processedGroups.has(currentGroupId)) continue;
+  return {
+    queue: updateQueue,
+    activeGroupsMap: activeGroupsMap,
+    processedElements: processedElements,
+    components: components,
+    step: 0,
+  };
+};
 
-      activeGroupsMap.set(currentGroupId, point.value);
-      processedGroups.add(currentGroupId);
+/**
+ * ВИКОНАТИ ОДИН КРОК ЕСТАФЕТИ - обробляє ОДНУ подію з черги
+ */
+export const processSimulationStep = (
+  queue,
+  activeGroupsMap,
+  processedElements,
+  components,
+  wires,
+  junctions,
+  points,
+  stepNumber,
+) => {
+  if (queue.length === 0) {
+    console.log("✅ Черга пуста - симуляція завершена");
+    return {
+      queue: [],
+      activeGroupsMap,
+      processedElements,
+      components,
+      wires,
+      finished: true,
+      step: stepNumber,
+    };
+  }
 
-      // Junction
-      const relevantJunctions = findJunctionsOnActiveWires(
-        [currentGroupId],
-        junctions,
-      );
-      relevantJunctions.forEach((junction) => {
-        const newGroups = getNewGroupsFromJunction(
-          junction,
-          Array.from(processedGroups),
+  const event = queue.shift();
+  const newQueue = [...queue];
+
+  console.log(`\n⚡ КРОК ${stepNumber}: Обробляємо подію type="${event.type}"`);
+  console.log(`📋 Черга після взяття події: ${newQueue.length} подій`);
+
+  let updatedComponents = [...components];
+  const TOUCH_THRESHOLD = 5;
+
+  // Копія processedElements для оновлення
+  const newProcessedElements = {
+    wireGroups: new Set(processedElements.wireGroups),
+    components: new Set(processedElements.components),
+    points: new Set(processedElements.points),
+  };
+
+  // ========================================
+  // ПОДІЯ 1: Сигнал від точки → на проводи
+  // ========================================
+  if (event.type === "from_point") {
+    console.log(`🔵 Точка ${event.point.id} → Проводи (value=${event.value})`);
+
+    // Додаємо точку в оброблені
+    newProcessedElements.points.add(event.point.id);
+
+    // 1️⃣ ПЕРЕВІРКА ЗВИЧАЙНИХ ПРОВОДІВ
+    const touchedWires = wires.filter((wire) => {
+      const wireStart = wire.wireStart || { x: wire.x, y: wire.y };
+      const wireEnd = wire.wireEnd || { x: wire.x, y: wire.y };
+
+      const touchesStart =
+        Math.abs(event.point.x - wireStart.x) < TOUCH_THRESHOLD &&
+        Math.abs(event.point.y - wireStart.y) < TOUCH_THRESHOLD;
+
+      const touchesEnd =
+        Math.abs(event.point.x - wireEnd.x) < TOUCH_THRESHOLD &&
+        Math.abs(event.point.y - wireEnd.y) < TOUCH_THRESHOLD;
+
+      return touchesStart || touchesEnd;
+    });
+
+    console.log(`  🔍 Знайдено проводів: ${touchedWires.length}`);
+
+    const touchedGroupIds = [
+      ...new Set(touchedWires.map((w) => w.wireGroupId)),
+    ];
+    console.log(`  🔍 Унікальних груп: ${touchedGroupIds.length}`);
+
+    touchedGroupIds.forEach((groupId) => {
+      const oldValue = activeGroupsMap.get(groupId);
+
+      if (oldValue !== event.value) {
+        console.log(
+          `  ✅ Група ${groupId}: ${oldValue} → ${event.value} (додаємо в чергу)`,
         );
-        newGroups.forEach((groupId) => {
-          if (!groupsToProcess.includes(groupId)) {
-            groupsToProcess.push(groupId);
-          }
+        activeGroupsMap.set(groupId, event.value);
+
+        // Додаємо групу в оброблені
+        newProcessedElements.wireGroups.add(groupId);
+
+        newQueue.push({
+          type: "from_wire_group",
+          wireGroupId: groupId,
+          value: event.value,
         });
+      } else {
+        console.log(
+          `  ⏭️ Група ${groupId}: значення не змінилось (${oldValue})`,
+        );
+      }
+    });
+
+    // 2️⃣ ⭐ НОВА ПЕРЕВІРКА: МІНІ-ПРОВОДИ КОМПОНЕНТІВ (INPUT точка → вхід компонента)
+    updatedComponents = updatedComponents.map((comp) => {
+      let componentChanged = false;
+
+      const updatedInputs = comp.inputs.map((input) => {
+        const inputWorldX = comp.x + input.localX + comp.width / 2;
+        const inputWorldY = comp.y + input.localY + comp.height / 2;
+
+        const distance = Math.sqrt(
+          Math.pow(event.point.x - inputWorldX, 2) +
+            Math.pow(event.point.y - inputWorldY, 2),
+        );
+
+        const touchesMiniWire = distance < TOUCH_THRESHOLD;
+
+        if (touchesMiniWire && input.value !== event.value) {
+          console.log(
+            `  ✅ Точка → Міні-провід компонента ${comp.type} (${comp.id}): вхід оновлено на ${event.value}`,
+          );
+          componentChanged = true;
+          return { ...input, value: event.value, connected: true };
+        }
+
+        return input;
       });
 
-      // Продовження
-      const continuationGroups = findContinuationGroups(
-        currentGroupId,
-        wires,
-        processedGroups,
-      );
-      continuationGroups.forEach((groupId) => {
-        if (!groupsToProcess.includes(groupId)) {
-          groupsToProcess.push(groupId);
+      if (componentChanged) {
+        console.log(`  ➕ Додаємо recalculate_component для ${comp.id}`);
+        newQueue.push({
+          type: "recalculate_component",
+          componentId: comp.id,
+        });
+
+        return { ...comp, inputs: updatedInputs };
+      }
+
+      return comp;
+    });
+  }
+
+  // ========================================
+  // ПОДІЯ 2: Сигнал від групи проводів → на компоненти і сусідні проводи
+  // ========================================
+  else if (event.type === "from_wire_group") {
+    console.log(
+      `🟢 Провід група ${event.wireGroupId} → Компоненти + Сусіди (value=${event.value})`,
+    );
+
+    // Група вже в processedElements (додана при активації)
+
+    // 1️⃣ Поширення на СУСІДНІ ГРУПИ
+
+    // Junction
+    const relevantJunctions = junctions.filter(
+      (junction) =>
+        junction.wireGroups && junction.wireGroups.includes(event.wireGroupId),
+    );
+
+    console.log(`  🔍 Знайдено junction: ${relevantJunctions.length}`);
+
+    relevantJunctions.forEach((junction) => {
+      const connectedGroups = junction.wireGroups || [];
+      connectedGroups.forEach((connectedGroupId) => {
+        if (connectedGroupId === event.wireGroupId) return;
+
+        const oldValue = activeGroupsMap.get(connectedGroupId);
+        if (oldValue !== event.value) {
+          console.log(
+            `  ✅ Junction → Група ${connectedGroupId}: ${oldValue} → ${event.value}`,
+          );
+          activeGroupsMap.set(connectedGroupId, event.value);
+
+          // Додаємо групу в оброблені
+          newProcessedElements.wireGroups.add(connectedGroupId);
+
+          newQueue.push({
+            type: "from_wire_group",
+            wireGroupId: connectedGroupId,
+            value: event.value,
+          });
+        }
+      });
+    });
+
+    // Продовження (торкання кінцями)
+    const groupsMap = new Map();
+    wires.forEach((wire) => {
+      if (!groupsMap.has(wire.wireGroupId)) {
+        groupsMap.set(wire.wireGroupId, {
+          wireGroupId: wire.wireGroupId,
+          wireStart: wire.wireStart,
+          wireEnd: wire.wireEnd,
+        });
+      }
+    });
+
+    const currentGroup = groupsMap.get(event.wireGroupId);
+    if (currentGroup) {
+      const start = currentGroup.wireStart;
+      const end = currentGroup.wireEnd;
+
+      groupsMap.forEach((otherGroup, otherGroupId) => {
+        if (otherGroupId === event.wireGroupId) return;
+
+        const otherStart = otherGroup.wireStart;
+        const otherEnd = otherGroup.wireEnd;
+
+        const endTouchesStart =
+          Math.abs(end.x - otherStart.x) < TOUCH_THRESHOLD &&
+          Math.abs(end.y - otherStart.y) < TOUCH_THRESHOLD;
+
+        const endTouchesEnd =
+          Math.abs(end.x - otherEnd.x) < TOUCH_THRESHOLD &&
+          Math.abs(end.y - otherEnd.y) < TOUCH_THRESHOLD;
+
+        const startTouchesStart =
+          Math.abs(start.x - otherStart.x) < TOUCH_THRESHOLD &&
+          Math.abs(start.y - otherStart.y) < TOUCH_THRESHOLD;
+
+        const startTouchesEnd =
+          Math.abs(start.x - otherEnd.x) < TOUCH_THRESHOLD &&
+          Math.abs(start.y - otherEnd.y) < TOUCH_THRESHOLD;
+
+        if (
+          endTouchesStart ||
+          endTouchesEnd ||
+          startTouchesStart ||
+          startTouchesEnd
+        ) {
+          const oldValue = activeGroupsMap.get(otherGroupId);
+          if (oldValue !== event.value) {
+            console.log(
+              `  ✅ Continuation → Група ${otherGroupId}: ${oldValue} → ${event.value}`,
+            );
+            activeGroupsMap.set(otherGroupId, event.value);
+
+            // Додаємо групу в оброблені
+            newProcessedElements.wireGroups.add(otherGroupId);
+
+            newQueue.push({
+              type: "from_wire_group",
+              wireGroupId: otherGroupId,
+              value: event.value,
+            });
+          }
         }
       });
     }
-  });
 
-  // ===== КРОК 2: Ітеративна обробка компонентів =====
-  let updatedComponents = [...components];
+    // 2️⃣ Поширення на КОМПОНЕНТИ
 
-  let previousState = {
-    components: JSON.stringify(
-      updatedComponents.map((c) => ({
-        id: c.id,
-        inputs: c.inputs.map((i) => ({
-          value: i.value,
-          connected: i.connected,
-        })),
-        outputs: c.outputs.map((o) => ({
-          value: o.value,
-          connected: o.connected,
-        })),
-      })),
-    ),
-    activeGroupsSize: activeGroupsMap.size,
-    activeGroupsValues: JSON.stringify(Array.from(activeGroupsMap.entries())),
-  };
+    if (currentGroup) {
+      const start = currentGroup.wireStart;
+      const end = currentGroup.wireEnd;
 
-  while (iteration < MAX_ITERATIONS) {
-    updatedComponents = propagateToComponentInputs(
-      activeGroupsMap,
-      wires,
-      updatedComponents,
-      points,
-    );
-    updatedComponents = calculateComponentLogic(updatedComponents);
+      updatedComponents = updatedComponents.map((comp) => {
+        let componentChanged = false;
 
-    const previousSize = activeGroupsMap.size;
-    const result = propagateFromComponentOutputs(
-      updatedComponents,
-      wires,
-      activeGroupsMap,
-    );
-    activeGroupsMap = result.activeGroupsMap;
+        const updatedInputs = comp.inputs.map((input) => {
+          const inputWorldX = comp.x + input.localX + comp.width / 2;
+          const inputWorldY = comp.y + input.localY + comp.height / 2;
 
-    if (result.conflicts.length > 0) {
-      allConflicts = [...allConflicts, ...result.conflicts];
-
-      // ⭐ ПЕРЕВІРКА НА ОСЦИЛЯТОР
-      const conflictSignature = result.conflicts
-        .map((c) => `${c.groupId}:${c.newValue}`)
-        .sort()
-        .join(",");
-
-      if (conflictSignature === previousConflictSignature) {
-        console.log("⚠️ Виявлено осцилятор, пропускаємо перепоширення");
-      } else {
-        console.log(
-          `🔄 Виявлено ${result.conflicts.length} конфліктів, перепоширюємо...`,
-        );
-
-        result.conflicts.forEach((conflict) => {
-          const changedGroupId = conflict.groupId;
-          const newValue = conflict.newValue;
-
-          console.log(
-            `🔄 Поширюємо зміну групи ${changedGroupId}: ${conflict.existingValue} → ${newValue}`,
+          const distanceToStart = Math.sqrt(
+            Math.pow(start.x - inputWorldX, 2) +
+              Math.pow(start.y - inputWorldY, 2),
+          );
+          const distanceToEnd = Math.sqrt(
+            Math.pow(end.x - inputWorldX, 2) + Math.pow(end.y - inputWorldY, 2),
           );
 
-          activeGroupsMap.set(changedGroupId, newValue);
+          const touches =
+            distanceToStart < TOUCH_THRESHOLD ||
+            distanceToEnd < TOUCH_THRESHOLD;
 
-          const groupsToReprocess = [changedGroupId];
-          const reprocessed = new Set();
-
-          while (groupsToReprocess.length > 0) {
-            const gId = groupsToReprocess.shift();
-
-            if (reprocessed.has(gId)) continue;
-            reprocessed.add(gId);
-
-            activeGroupsMap.set(gId, newValue);
-            console.log(`  ↳ Оновлено групу ${gId} на ${newValue}`);
-
-            const relevantJunctions = findJunctionsOnActiveWires(
-              [gId],
-              junctions,
+          if (touches && input.value !== event.value) {
+            console.log(
+              `  ✅ Компонент ${comp.type} (${comp.id}): вхід оновлено на ${event.value}`,
             );
-            relevantJunctions.forEach((junction) => {
-              const connectedGroups = junction.wireGroups || [];
-              connectedGroups.forEach((connGId) => {
-                if (!reprocessed.has(connGId) && activeGroupsMap.has(connGId)) {
-                  groupsToReprocess.push(connGId);
-                }
-              });
-            });
-
-            const continuations = findContinuationGroups(
-              gId,
-              wires,
-              reprocessed,
-            );
-            continuations.forEach((cId) => {
-              if (!reprocessed.has(cId) && activeGroupsMap.has(cId)) {
-                groupsToReprocess.push(cId);
-              }
-            });
+            componentChanged = true;
+            return { ...input, value: event.value, connected: true };
           }
 
-          console.log(
-            `✅ Перепоширено ${reprocessed.size} груп для конфлікту ${changedGroupId}`,
-          );
+          return input;
         });
 
-        // ⭐⭐⭐ ДОДАЙ ЦЕ ПІСЛЯ ПЕРЕПОШИРЕННЯ: ⭐⭐⭐
-        console.log("🔄 Оновлюємо компоненти після перепоширення...");
-        updatedComponents = propagateToComponentInputs(
-          activeGroupsMap,
-          wires,
-          updatedComponents,
-          points,
-        );
-        updatedComponents = calculateComponentLogic(updatedComponents);
-
-        previousConflictSignature = conflictSignature;
-      }
-    }
-
-    // Поширення нових груп від компонентів
-    if (activeGroupsMap.size > previousSize) {
-      let newGroups = Array.from(activeGroupsMap.keys()).filter(
-        (id) => !processedGroups.has(id),
-      );
-
-      while (newGroups.length > 0) {
-        const currentGroupId = newGroups.shift();
-        if (processedGroups.has(currentGroupId)) continue;
-
-        processedGroups.add(currentGroupId);
-
-        const relevantJunctions = findJunctionsOnActiveWires(
-          [currentGroupId],
-          junctions,
-        );
-        relevantJunctions.forEach((junction) => {
-          const groups = getNewGroupsFromJunction(
-            junction,
-            Array.from(processedGroups),
-          );
-          groups.forEach((gId) => {
-            if (!activeGroupsMap.has(gId)) {
-              const groupValue = activeGroupsMap.get(currentGroupId);
-              activeGroupsMap.set(gId, groupValue);
-              newGroups.push(gId);
-            }
+        if (componentChanged) {
+          newQueue.push({
+            type: "recalculate_component",
+            componentId: comp.id,
           });
-        });
 
-        const continuations = findContinuationGroups(
-          currentGroupId,
-          wires,
-          processedGroups,
-        );
-        continuations.forEach((gId) => {
-          if (!activeGroupsMap.has(gId)) {
-            const groupValue = activeGroupsMap.get(currentGroupId);
-            activeGroupsMap.set(gId, groupValue);
-            newGroups.push(gId);
-          }
-        });
-      }
-    }
+          return { ...comp, inputs: updatedInputs };
+        }
 
-    // Перевірка стабілізації
-    const currentState = {
-      components: JSON.stringify(
-        updatedComponents.map((c) => ({
-          id: c.id,
-          inputs: c.inputs.map((i) => ({
-            value: i.value,
-            connected: i.connected,
-          })),
-          outputs: c.outputs.map((o) => ({
-            value: o.value,
-            connected: o.connected,
-          })),
-        })),
-      ),
-      activeGroupsSize: activeGroupsMap.size,
-      activeGroupsValues: JSON.stringify(Array.from(activeGroupsMap.entries())),
-    };
-
-    const nothingChanged =
-      currentState.components === previousState.components &&
-      currentState.activeGroupsSize === previousState.activeGroupsSize &&
-      currentState.activeGroupsValues === previousState.activeGroupsValues;
-
-    if (nothingChanged && iteration >= 2) {
-      console.log(`✅ Стабілізація досягнута на ітерації ${iteration}`);
-      break;
-    }
-
-    previousState = currentState;
-    iteration++;
-
-    if (iteration === MAX_ITERATIONS) {
-      console.warn(`⚠️ Досягнуто максимум ітерацій (${MAX_ITERATIONS})`);
+        return comp;
+      });
     }
   }
 
-  // ===== КРОК 3: Оновлюємо проводи =====
-  console.log("\n🔌 ОНОВЛЕННЯ ПРОВОДІВ:");
-  console.log("activeGroupsMap:", Array.from(activeGroupsMap.entries()));
+  // ========================================
+  // ПОДІЯ 3: Компонент має перерахувати логіку
+  // ========================================
+  else if (event.type === "recalculate_component") {
+    console.log(`🟡 Перерахунок компонента ${event.componentId}`);
 
-  const updatedWires = wires.map((wire) => {
-    const isActive = activeGroupsMap.has(wire.wireGroupId);
-    const value = activeGroupsMap.get(wire.wireGroupId) || 0;
+    const compIndex = updatedComponents.findIndex(
+      (c) => c.id === event.componentId,
+    );
 
-    if (isActive) {
-      console.log(
-        `📍 Провід ${wire.id}: група ${wire.wireGroupId}, value=${value}, ` +
-          `coords: (${wire.x}, ${wire.y}), direction: ${wire.direction}`,
-      );
+    if (compIndex === -1) {
+      console.log(`  ❌ Компонент не знайдено!`);
+    } else {
+      const comp = updatedComponents[compIndex];
+
+      // Додаємо компонент в оброблені
+      newProcessedElements.components.add(comp.id);
+
+      const config = GATE_CONFIGS[comp.type];
+      if (!config) {
+        console.log(`  ❌ Конфіг не знайдено для ${comp.type}`);
+      } else {
+        // CLOCK
+        if (comp.type === "CLOCK") {
+          const clockValue = comp.state?.value || 0;
+          const updatedOutputs = comp.outputs.map((output) => ({
+            ...output,
+            value: output.inverted ? (clockValue === 1 ? 0 : 1) : clockValue,
+            connected: true,
+          }));
+
+          updatedComponents[compIndex] = {
+            ...comp,
+            outputs: updatedOutputs,
+          };
+        }
+        // Інші компоненти
+        else {
+          const inputValues = comp.inputs.map((input) => {
+            const isInverted = input.inverted || false;
+            return isInverted ? (input.value === 1 ? 0 : 1) : input.value;
+          });
+
+          let result = config.logic(inputValues, comp.state);
+          let updatedState = comp.state;
+
+          // Якщо є стан (тригери, регістри і т.д.)
+          if (
+            typeof result === "object" &&
+            result !== null &&
+            !Array.isArray(result)
+          ) {
+            updatedState = result;
+          }
+
+          // Оновлюємо виходи
+          let updatedOutputs;
+
+          if (
+            comp.type === "D_TRIGGER" ||
+            comp.type === "RS_TRIGGER" ||
+            comp.type === "JK_TRIGGER" ||
+            comp.type === "T_TRIGGER"
+          ) {
+            updatedOutputs = comp.outputs.map((output, index) => {
+              const baseValue =
+                index === 0 ? updatedState.Q : updatedState.Qbar;
+              const hasConnectedInputs = comp.inputs.some(
+                (inp) => inp.connected,
+              );
+              return {
+                ...output,
+                value: baseValue,
+                connected: hasConnectedInputs,
+              };
+            });
+          } else if (
+            comp.type === "REGISTER_4BIT" ||
+            comp.type === "REGISTER_8BIT" ||
+            comp.type === "SHIFT_REGISTER_4BIT" ||
+            comp.type === "SHIFT_REGISTER_8BIT"
+          ) {
+            const bitCount =
+              comp.type === "REGISTER_8BIT" ||
+              comp.type === "SHIFT_REGISTER_8BIT"
+                ? 8
+                : 4;
+            updatedOutputs = comp.outputs.map((output, index) => {
+              const stateKey = `Q${index}`;
+              const baseValue = updatedState[stateKey] ?? 0;
+              const isInverted = output.inverted || false;
+              const finalValue = isInverted
+                ? baseValue === 1
+                  ? 0
+                  : 1
+                : baseValue;
+              const hasConnectedInputs = comp.inputs.some(
+                (inp) => inp.connected,
+              );
+              return {
+                ...output,
+                value: finalValue,
+                connected: hasConnectedInputs,
+              };
+            });
+          } else if (
+            comp.type === "COUNTER_4BIT" ||
+            comp.type === "COUNTER_8BIT" ||
+            comp.type === "COUNTER_4BIT_UP"
+          ) {
+            const bitCount = comp.type === "COUNTER_8BIT" ? 8 : 4;
+            updatedOutputs = comp.outputs.map((output, index) => {
+              let baseValue;
+              if (index < bitCount) {
+                const stateKey = `Q${index}`;
+                baseValue = updatedState[stateKey] ?? 0;
+              } else {
+                baseValue = updatedState.overflow ?? 0;
+              }
+              const isInverted = output.inverted || false;
+              const finalValue = isInverted
+                ? baseValue === 1
+                  ? 0
+                  : 1
+                : baseValue;
+              const hasConnectedInputs = comp.inputs.some(
+                (inp) => inp.connected,
+              );
+              return {
+                ...output,
+                value: finalValue,
+                connected: hasConnectedInputs,
+              };
+            });
+          }
+          // ========== RAM ==========
+          else if (
+            comp.type === "RAM_16x4" ||
+            comp.type === "RAM_16x8" ||
+            comp.type === "RAM_256x8" ||
+            comp.type === "RAM_256x8_CS"
+          ) {
+            const logicResult = config.logic(inputValues, comp.state);
+
+            console.log(`  📊 RAM logic результат:`, logicResult);
+            if (logicResult && logicResult.outputs) {
+              console.log(`  📊 outputs array:`, logicResult.outputs);
+              console.log(
+                `  📊 outputs[0] type:`,
+                typeof logicResult.outputs[0],
+              );
+              console.log(`  📊 outputs[0] value:`, logicResult.outputs[0]);
+            }
+
+            // Перевіряємо новий формат {state, outputs}
+            if (
+              logicResult &&
+              logicResult.state &&
+              Array.isArray(logicResult.outputs)
+            ) {
+              console.log(`  ✅ Новий формат RAM виявлено`);
+
+              updatedState = logicResult.state;
+
+              updatedOutputs = comp.outputs.map((output, index) => {
+                const baseValue = logicResult.outputs[index] ?? 0;
+
+                console.log(
+                  `    📌 Вихід ${index}: baseValue = ${baseValue} (type: ${typeof baseValue})`,
+                );
+
+                const isInverted = output.inverted || false;
+                const finalValue = isInverted
+                  ? baseValue === 1
+                    ? 0
+                    : 1
+                  : baseValue;
+                const hasConnectedInputs = comp.inputs.some(
+                  (inp) => inp.connected,
+                );
+
+                return {
+                  ...output,
+                  value: finalValue,
+                  connected: hasConnectedInputs,
+                };
+              });
+
+              console.log(`  📌 updatedOutputs:`, updatedOutputs);
+            } else {
+              console.log(`  ⚠️ Старий формат RAM або невалідний результат`);
+
+              // Старий формат (сумісність)
+              updatedState = logicResult;
+
+              updatedOutputs = comp.outputs.map((output, index) => {
+                const stateKey = `Q${index}`;
+                const baseValue = updatedState[stateKey] ?? 0;
+                const isInverted = output.inverted || false;
+                const finalValue = isInverted
+                  ? baseValue === 1
+                    ? 0
+                    : 1
+                  : baseValue;
+                const hasConnectedInputs = comp.inputs.some(
+                  (inp) => inp.connected,
+                );
+
+                return {
+                  ...output,
+                  value: finalValue,
+                  connected: hasConnectedInputs,
+                };
+              });
+            }
+          }
+          // ========== ROM ==========
+          else if (
+            comp.type === "ROM_16x4" ||
+            comp.type === "ROM_16x8" ||
+            comp.type === "ROM_256x8" ||
+            comp.type === "ROM_256x8_CS"
+          ) {
+            const logicResult = config.logic(inputValues, comp.state);
+
+            console.log(`  📊 ROM logic результат:`, logicResult);
+            if (logicResult && logicResult.Q0 !== undefined) {
+              console.log(`  📊 ROM має Q0, Q1... формат`);
+              console.log(`  📊 Q0 type:`, typeof logicResult.Q0);
+              console.log(`  📊 Q0 value:`, logicResult.Q0);
+            }
+
+            // ROM повертає {memory, Q0, Q1, Q2, ...}
+            updatedState = logicResult;
+
+            const dataBits = comp.type === "ROM_16x4" ? 4 : 8;
+
+            updatedOutputs = comp.outputs.map((output, index) => {
+              const stateKey = `Q${index}`;
+              const baseValue = updatedState[stateKey] ?? 0;
+
+              console.log(
+                `    📌 ROM Вихід ${index}: Q${index} = ${baseValue} (type: ${typeof baseValue})`,
+              );
+
+              const isInverted = output.inverted || false;
+              const finalValue = isInverted
+                ? baseValue === 1
+                  ? 0
+                  : 1
+                : baseValue;
+              const hasConnectedInputs = comp.inputs.some(
+                (inp) => inp.connected,
+              );
+
+              return {
+                ...output,
+                value: finalValue,
+                connected: hasConnectedInputs,
+              };
+            });
+
+            console.log(`  📌 ROM updatedOutputs:`, updatedOutputs);
+          } else if (Array.isArray(result)) {
+            // Масив виходів (дешифратори, ALU, тощо)
+            updatedOutputs = comp.outputs.map((output, index) => {
+              const baseValue = result[index] ?? 0;
+              const isInverted = output.inverted || false;
+              const finalValue = isInverted
+                ? baseValue === 1
+                  ? 0
+                  : 1
+                : baseValue;
+              const hasConnectedInputs = comp.inputs.some(
+                (inp) => inp.connected,
+              );
+              return {
+                ...output,
+                value: finalValue,
+                connected: hasConnectedInputs,
+              };
+            });
+          } else {
+            // Прості логічні елементи (один вихід)
+            const outputValue = result;
+            updatedOutputs = comp.outputs.map((output) => {
+              const isInverted = output.inverted || false;
+              const finalValue = isInverted
+                ? outputValue === 1
+                  ? 0
+                  : 1
+                : outputValue;
+              const hasConnectedInputs = comp.inputs.some(
+                (inp) => inp.connected,
+              );
+              return {
+                ...output,
+                value: finalValue,
+                connected: hasConnectedInputs,
+              };
+            });
+          }
+
+          // Перевіряємо чи змінились виходи
+          const outputsChanged = updatedOutputs.some(
+            (output, i) => output.value !== comp.outputs[i].value,
+          );
+
+          if (outputsChanged) {
+            console.log(`  ✅ Виходи змінились! Додаємо в чергу`);
+
+            newQueue.push({
+              type: "from_component",
+              componentId: comp.id,
+            });
+          } else {
+            console.log(`  ⏭️ Виходи не змінились`);
+          }
+
+          updatedComponents[compIndex] = {
+            ...comp,
+            outputs: updatedOutputs,
+            state: updatedState,
+          };
+        }
+      }
     }
+  }
 
-    return {
-      ...wire,
-      active: isActive,
-      value: value,
-    };
-  });
+  // ========================================
+  // ПОДІЯ 4: Виходи компонента → на проводи
+  // ========================================
+  else if (event.type === "from_component") {
+    console.log(`🟠 Компонент ${event.componentId} → Проводи`);
+
+    const comp = updatedComponents.find((c) => c.id === event.componentId);
+    if (!comp) {
+      console.log(`  ❌ Компонент не знайдено!`);
+    } else {
+      comp.outputs.forEach((output, outputIndex) => {
+        if (!output.connected && comp.type !== "CLOCK") return;
+
+        const outputWorldX = comp.x + output.wireEndX + comp.width / 2;
+        const outputWorldY = comp.y + output.wireEndY + comp.height / 2;
+
+        console.log(
+          `  🔍 Вихід ${outputIndex} (value=${output.value}) на (${outputWorldX}, ${outputWorldY})`,
+        );
+
+        // Знаходимо групи проводів
+        const groupsMap = new Map();
+        wires.forEach((wire) => {
+          if (!groupsMap.has(wire.wireGroupId)) {
+            groupsMap.set(wire.wireGroupId, {
+              wireGroupId: wire.wireGroupId,
+              wireStart: wire.wireStart,
+              wireEnd: wire.wireEnd,
+            });
+          }
+        });
+
+        groupsMap.forEach((group, groupId) => {
+          const touchesStart =
+            Math.abs(outputWorldX - group.wireStart.x) < TOUCH_THRESHOLD &&
+            Math.abs(outputWorldY - group.wireStart.y) < TOUCH_THRESHOLD;
+
+          const touchesEnd =
+            Math.abs(outputWorldX - group.wireEnd.x) < TOUCH_THRESHOLD &&
+            Math.abs(outputWorldY - group.wireEnd.y) < TOUCH_THRESHOLD;
+
+          if (touchesStart || touchesEnd) {
+            const oldValue = activeGroupsMap.get(groupId);
+
+            if (oldValue !== output.value) {
+              console.log(
+                `  ✅ Група ${groupId}: ${oldValue} → ${output.value} (додаємо в чергу)`,
+              );
+              activeGroupsMap.set(groupId, output.value);
+
+              // Додаємо групу в оброблені
+              newProcessedElements.wireGroups.add(groupId);
+
+              newQueue.push({
+                type: "from_wire_group",
+                wireGroupId: groupId,
+                value: output.value,
+              });
+            }
+          }
+        });
+
+        // Прямі з'єднання компонент → компонент
+        updatedComponents.forEach((targetComp, targetIndex) => {
+          if (targetComp.id === comp.id) return;
+
+          targetComp.inputs.forEach((input, inputIndex) => {
+            const inputWorldX =
+              targetComp.x + input.localX + targetComp.width / 2;
+            const inputWorldY =
+              targetComp.y + input.localY + targetComp.height / 2;
+
+            const distance = Math.sqrt(
+              Math.pow(outputWorldX - inputWorldX, 2) +
+                Math.pow(outputWorldY - inputWorldY, 2),
+            );
+
+            if (distance < TOUCH_THRESHOLD && input.value !== output.value) {
+              console.log(
+                `  ✅ Прямо на компонент ${targetComp.type} вхід ${inputIndex}`,
+              );
+
+              updatedComponents[targetIndex] = {
+                ...targetComp,
+                inputs: targetComp.inputs.map((inp, i) =>
+                  i === inputIndex
+                    ? { ...inp, value: output.value, connected: true }
+                    : inp,
+                ),
+              };
+
+              newQueue.push({
+                type: "recalculate_component",
+                componentId: targetComp.id,
+              });
+            }
+          });
+        });
+      });
+    }
+  }
+
+  console.log(`📋 Черга після обробки: ${newQueue.length} подій`);
+  console.log(
+    `📊 Оброблено: точок=${newProcessedElements.points.size}, груп=${newProcessedElements.wireGroups.size}, компонентів=${newProcessedElements.components.size}\n`,
+  );
+
+  // Оновлюємо проводи
+  const updatedWires = wires.map((wire) => ({
+    ...wire,
+    active: activeGroupsMap.has(wire.wireGroupId),
+    value: activeGroupsMap.get(wire.wireGroupId) || 0,
+  }));
 
   return {
-    wires: updatedWires,
+    queue: newQueue,
+    activeGroupsMap,
+    processedElements: newProcessedElements,
     components: updatedComponents,
-    conflicts: allConflicts,
+    wires: updatedWires,
+    finished: false,
+    step: stepNumber + 1,
+  };
+};
+
+// ========================================
+// ⭐ COMPATIBILITY WRAPPER для TruthTable
+// ========================================
+
+/**
+ * Стара функція для зворотної сумісності з TruthTable Generator
+ * Виконує ПОВНУ симуляцію (всі кроки одразу) і повертає результат
+ */
+export const propagateSignalFromPoints = (
+  points,
+  wires,
+  junctions,
+  components,
+) => {
+  console.log("\n📊 [TruthTable Mode] Запуск повної симуляції...");
+
+  // Ініціалізуємо
+  const initialState = initializeSimulation(points, wires, components);
+
+  let state = {
+    queue: initialState.queue,
+    activeGroupsMap: initialState.activeGroupsMap,
+    processedElements: initialState.processedElements,
+    components: components,
+    wires: wires,
+  };
+
+  // Виконуємо всі кроки до завершення
+  let iteration = 0;
+  const MAX_ITERATIONS = 100;
+
+  while (state.queue.length > 0 && iteration < MAX_ITERATIONS) {
+    const result = processSimulationStep(
+      state.queue,
+      state.activeGroupsMap,
+      state.processedElements,
+      state.components,
+      wires,
+      junctions,
+      points,
+      iteration,
+    );
+
+    state = {
+      queue: result.queue,
+      activeGroupsMap: result.activeGroupsMap,
+      processedElements: result.processedElements,
+      components: result.components,
+      wires: result.wires,
+    };
+
+    iteration++;
+
+    if (result.finished) {
+      console.log(`✅ [TruthTable Mode] Завершено за ${iteration} кроків`);
+      break;
+    }
+  }
+
+  if (iteration === MAX_ITERATIONS) {
+    console.warn(
+      `⚠️ [TruthTable Mode] Досягнуто ліміт ${MAX_ITERATIONS} ітерацій`,
+    );
+  }
+
+  return {
+    wires: state.wires,
+    components: state.components,
+    conflicts: [],
   };
 };

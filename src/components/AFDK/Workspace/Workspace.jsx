@@ -243,14 +243,17 @@ function Workspace({
 
   const handleWireClick = useCallback(
     (e, wireId) => {
+      if (isSimulating) return; // ⬅️ БЛОКУЄМО
       if (!isWireMode) return;
       e.stopPropagation();
       selectWire(wireId);
     },
-    [isWireMode, selectWire],
+    [isWireMode, selectWire, isSimulating],
   );
 
   const handlePortInvert = (componentId, portId, portType) => {
+    if (isSimulating) return; // ⬅️ БЛОКУЄМО
+
     setComponents((prev) =>
       prev.map((comp) => {
         if (comp.id !== componentId) return comp;
@@ -293,18 +296,17 @@ function Workspace({
   );
 
   const handleDrop = (e) => {
+    if (isSimulating) return; // ⬅️ БЛОКУЄМО
     e.preventDefault();
     const componentData = e.dataTransfer.getData("componentType");
     if (!componentData) return;
 
-    // ⭐ СКИДАЄМО ФОКУС при додаванні нового елемента
     clearSelection();
 
     const [type, inputCount] = componentData.split("-");
     const inputs = inputCount ? parseInt(inputCount) : type === "NOT" ? 1 : 2;
 
     const coords = screenToWorkspace(e.clientX, e.clientY);
-
     const x = snapToHalfGrid(coords.x);
     const y = snapToHalfGrid(coords.y);
 
@@ -504,6 +506,8 @@ function Workspace({
 
     workspaceRef,
     workspaceContentRef,
+
+    isSimulating,
 
     handleDrop,
     handleDragOver,

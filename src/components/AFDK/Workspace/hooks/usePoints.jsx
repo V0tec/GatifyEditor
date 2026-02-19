@@ -25,7 +25,16 @@ export function usePoints(
       setPoints((prev) =>
         prev.map((p) => {
           if (p.id === pointId && p.type === "input") {
-            return { ...p, value: p.value === 1 ? 0 : 1 };
+            const newValue = p.value === 1 ? 0 : 1;
+
+            // ⭐ Повідомляємо симуляцію про нове значення
+            setTimeout(() => {
+              if (window.__restartFromPoint) {
+                window.__restartFromPoint(pointId, newValue);
+              }
+            }, 0);
+
+            return { ...p, value: newValue };
           }
           return p;
         }),
