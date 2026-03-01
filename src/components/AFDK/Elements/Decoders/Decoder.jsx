@@ -25,7 +25,9 @@ function Decoder({
 
   // Формуємо вхідний код для відображення
   const inputCode = component.inputs
-    .map((input) => (input.inverted ? (input.value === 1 ? 0 : 1) : input.value))
+    .map((input) =>
+      input.inverted ? (input.value === 1 ? 0 : 1) : input.value,
+    )
     .reverse()
     .join("");
 
@@ -160,7 +162,7 @@ function Decoder({
                   style={{
                     position: "absolute",
                     left: input.wireEndX - portRadius - 3 + component.width / 2,
-                    top: input.wireEndY - portRadius - 3 + component.height / 2,
+                    top: input.wireEndY - portRadius - 4 + component.height / 2,
                     width: portRadius * 2 + 6,
                     height: portRadius * 2 + 6,
                     border: "2px solid #ff9800",
@@ -220,7 +222,7 @@ function Decoder({
                       ? "#4CAF50"
                       : "#f44336"
                     : "#666",
-                  border: isInverted ? "3px solid #ff9800" : "2px solid #333",
+                  border: "2px solid #333",
                   borderRadius: "50%",
                   cursor: "pointer",
                   zIndex: 100,
@@ -253,7 +255,7 @@ function Decoder({
                     left:
                       output.wireEndX - portRadius - 28 + component.width / 2,
                     top:
-                      output.wireEndY - portRadius - 3 + component.height / 2,
+                      output.wireEndY - portRadius - 4 + component.height / 2,
                     width: portRadius * 2 + 6,
                     height: portRadius * 2 + 6,
                     border: "2px solid #ff9800",

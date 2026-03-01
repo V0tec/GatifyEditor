@@ -1,5 +1,5 @@
 export const createClock = (id, x, y) => {
-  const clockWidth = 100;
+  const clockWidth = 120;
   const clockHeight = 60;
 
   return {
@@ -25,7 +25,7 @@ export const createClock = (id, x, y) => {
       },
       {
         id: `${id}-output-1`,
-        label: "CLK̅",
+        label: "CLK",
         value: 0,
         localX: clockWidth / 2,
         localY: 10,

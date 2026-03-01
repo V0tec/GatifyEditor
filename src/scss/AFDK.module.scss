@@ -1,6 +1,6 @@
 .afdk {
   display: flex;
-  height: 90vh; // повна висота вікна
+  height: calc(100vh - 96.8px);
   width: 100%;
 }
 

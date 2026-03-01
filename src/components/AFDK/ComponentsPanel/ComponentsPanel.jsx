@@ -16,13 +16,25 @@ const CATEGORIES = [
   {
     id: "logic",
     label: "Базові елементи",
-    icon: "🔷",
+    icon: (
+      <img
+        className={styles.icon}
+        src="/GatifyEditor/icons/componentsPanel/and.png"
+        alt="Часові діаграми"
+      />
+    ),
     items: GATE_TYPES,
   },
   {
     id: "triggers",
     label: "Тригери",
-    icon: "⚡",
+    icon: (
+      <img
+        className={styles.icon}
+        src="/GatifyEditor/icons/componentsPanel/trigger.png"
+        alt="Часові діаграми"
+      />
+    ),
     items: [
       { type: "D_TRIGGER", label: "D-тригер", hasInputs: false },
       { type: "RS_TRIGGER", label: "RS-тригер", hasInputs: false },
@@ -33,13 +45,25 @@ const CATEGORIES = [
   {
     id: "generators",
     label: "Генератори",
-    icon: "⏱️",
-    items: [{ type: "CLOCK", label: "Clock", hasInputs: false }],
+    icon: (
+      <img
+        className={styles.icon}
+        src="/GatifyEditor/icons/componentsPanel/generator.png"
+        alt="Часові діаграми"
+      />
+    ),
+    items: [{ type: "CLOCK", label: "CLOCK", hasInputs: false }],
   },
   {
     id: "multiplexers",
     label: "Мультиплексори",
-    icon: "🔀",
+    icon: (
+      <img
+        className={styles.icon}
+        src="/GatifyEditor/icons/componentsPanel/multiplexer.png"
+        alt="Часові діаграми"
+      />
+    ),
     items: [
       { type: "MUX2", label: "MUX 2:1", hasInputs: false },
       { type: "MUX4", label: "MUX 4:1", hasInputs: false },
@@ -49,53 +73,65 @@ const CATEGORIES = [
   {
     id: "demultiplexers",
     label: "Демультиплексори",
-    icon: "🔁",
+    icon: (
+      <img
+        className={styles.icon}
+        src="/GatifyEditor/icons/componentsPanel/demultiplexer.png"
+        alt="Часові діаграми"
+      />
+    ),
     items: [
       { type: "DEMUX2", label: "DEMUX 1:2", hasInputs: false },
       { type: "DEMUX4", label: "DEMUX 1:4", hasInputs: false },
       { type: "DEMUX8", label: "DEMUX 1:8", hasInputs: false },
     ],
   },
+  // Encoder
+  {
+    id: "encoder",
+    label: "Шифратор",
+    icon: (
+      <img
+        className={styles.icon}
+        src="/GatifyEditor/icons/componentsPanel/encoder.png"
+        alt="Часові діаграми"
+      />
+    ),
+    items: [
+      { type: "ENCODER_4_2", label: "ENC 4:2", hasInputs: false },
+      { type: "ENCODER_8_3", label: "ENC 8:3", hasInputs: false },
+      { type: "ENCODER_16_4", label: "ENC 16:4", hasInputs: false },
+    ],
+  },
   // ⭐ НОВА КАТЕГОРІЯ: Дешифратори
   {
     id: "decoders",
     label: "Дешифратори",
-    icon: "🔢",
+    icon: (
+      <img
+        className={styles.icon}
+        src="/GatifyEditor/icons/componentsPanel/decoder.png"
+        alt="Часові діаграми"
+      />
+    ),
     items: [
       { type: "DECODER2", label: "DEC 2:4", hasInputs: false },
       { type: "DECODER3", label: "DEC 3:8", hasInputs: false },
       { type: "DECODER4", label: "DEC 4:16", hasInputs: false },
     ],
   },
-  // ⭐ НОВА КАТЕГОРІЯ: Суматори
-  {
-    id: "adders",
-    label: "Суматори",
-    icon: "➕",
-    items: [
-      { type: "HALF_ADDER", label: "Half Adder", hasInputs: false },
-      { type: "FULL_ADDER", label: "Full Adder", hasInputs: false },
-      { type: "ADDER_4BIT", label: "4-bit Adder", hasInputs: false },
-      { type: "ADDER_8BIT", label: "8-bit Adder", hasInputs: false },
-    ],
-  },
-  // Регістри
-  {
-    id: "registers",
-    label: "Регістри",
-    icon: "💾",
-    items: [
-      { type: "REGISTER_4BIT", label: "REG 4-bit", hasInputs: false },
-      { type: "REGISTER_8BIT", label: "REG 8-bit", hasInputs: false },
-      { type: "SHIFT_REGISTER_4BIT", label: "SHIFT 4-bit", hasInputs: false },
-      { type: "SHIFT_REGISTER_8BIT", label: "SHIFT 8-bit", hasInputs: false },
-    ],
-  },
+
   // Компаратори
   {
     id: "comparators",
     label: "Компаратори",
-    icon: "⚖️",
+    icon: (
+      <img
+        className={styles.icon}
+        src="/GatifyEditor/icons/componentsPanel/comparator.png"
+        alt="Часові діаграми"
+      />
+    ),
     items: [
       { type: "COMPARATOR_1BIT", label: "CMP 1-bit", hasInputs: false },
       { type: "COMPARATOR_4BIT", label: "CMP 4-bit", hasInputs: false },
@@ -106,18 +142,48 @@ const CATEGORIES = [
   {
     id: "counters",
     label: "Лічильники",
-    icon: "🔢",
+    icon: (
+      <img
+        className={styles.icon}
+        src="/GatifyEditor/icons/componentsPanel/counter.png"
+        alt="Часові діаграми"
+      />
+    ),
     items: [
       { type: "COUNTER_4BIT_UP", label: "CNT 4-bit UP", hasInputs: false },
       { type: "COUNTER_4BIT", label: "CNT 4-bit", hasInputs: false },
       { type: "COUNTER_8BIT", label: "CNT 8-bit", hasInputs: false },
     ],
   },
+  // Регістри
+  {
+    id: "registers",
+    label: "Регістри",
+    icon: (
+      <img
+        className={styles.icon}
+        src="/GatifyEditor/icons/componentsPanel/register.png"
+        alt="Часові діаграми"
+      />
+    ),
+    items: [
+      { type: "REGISTER_4BIT", label: "REG 4-bit", hasInputs: false },
+      { type: "REGISTER_8BIT", label: "REG 8-bit", hasInputs: false },
+      { type: "SHIFT_REGISTER_4BIT", label: "SHIFT 4-bit", hasInputs: false },
+      { type: "SHIFT_REGISTER_8BIT", label: "SHIFT 8-bit", hasInputs: false },
+    ],
+  },
   // RAM && ROM
   {
     id: "memory",
     label: "Пам'ять",
-    icon: "💾",
+    icon: (
+      <img
+        className={styles.icon}
+        src="/GatifyEditor/icons/componentsPanel/memory.png"
+        alt="Часові діаграми"
+      />
+    ),
     items: [
       { type: "RAM_16x4", label: "RAM 16×4", hasInputs: false },
       { type: "RAM_16x8", label: "RAM 16×8", hasInputs: false },
@@ -129,25 +195,38 @@ const CATEGORIES = [
       { type: "ROM_256x8_CS", label: "ROM 256×8 CS", hasInputs: false },
     ],
   },
+  // ⭐ НОВА КАТЕГОРІЯ: Суматори
+  {
+    id: "adders",
+    label: "Суматори",
+    icon: (
+      <img
+        className={styles.icon}
+        src="/GatifyEditor/icons/componentsPanel/adder.png"
+        alt="Часові діаграми"
+      />
+    ),
+    items: [
+      { type: "HALF_ADDER", label: "Half Adder", hasInputs: false },
+      { type: "FULL_ADDER", label: "Full Adder", hasInputs: false },
+      { type: "ADDER_4BIT", label: "4-bit Adder", hasInputs: false },
+      { type: "ADDER_8BIT", label: "8-bit Adder", hasInputs: false },
+    ],
+  },
   // ALU
   {
     id: "alu",
     label: "ALU",
-    icon: "⚙️",
+    icon: (
+      <img
+        className={styles.icon}
+        src="/GatifyEditor/icons/componentsPanel/alu.png"
+        alt="Часові діаграми"
+      />
+    ),
     items: [
       { type: "ALU_4BIT", label: "ALU 4-bit", hasInputs: false },
       { type: "ALU_8BIT", label: "ALU 8-bit", hasInputs: false },
-    ],
-  },
-  // Encoder
-  {
-    id: "encoder",
-    label: "Encoder",
-    icon: "🔼",
-    items: [
-      { type: "ENCODER_4_2", label: "ENC 4:2", hasInputs: false },
-      { type: "ENCODER_8_3", label: "ENC 8:3", hasInputs: false },
-      { type: "ENCODER_16_4", label: "ENC 16:4", hasInputs: false },
     ],
   },
 ];

@@ -1,13 +1,551 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/GatifyLogo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gatify - Digital Circuit Editor</title>
+    <title>Gatify - Digital Logic Circuit Simulator</title>
+    <link rel="icon" href="GatifyLogo.png" />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      /* ============================================ */
+      /* INTRO LOADER */
+      /* ============================================ */
+
+      #intro-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: radial-gradient(
+          ellipse at center,
+          #0a1a0a 0%,
+          #000000 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        opacity: 1;
+        transition: opacity 0.8s ease-out;
+      }
+
+      #intro-loader.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* Grid background canvas */
+      #intro-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.3;
+      }
+
+      /* Circuit Board */
+      .circuit-board {
+        position: relative;
+        width: 600px;
+        height: 600px;
+        z-index: 1;
+      }
+
+      /* SVG Traces */
+      .traces {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1; /* ← НИЖЧЕ CPU */
+      }
+
+      .trace {
+        opacity: 0;
+      }
+
+      .trace.drawn {
+        opacity: 1;
+      }
+
+      .trace-line {
+        fill: none;
+        stroke: #4caf50;
+        stroke-width: 2;
+        stroke-linecap: round;
+        filter: drop-shadow(0 0 4px rgba(76, 175, 80, 0.6));
+        stroke-dasharray: 400;
+        stroke-dashoffset: 400;
+      }
+
+      .trace.drawn .trace-line {
+        animation: drawTrace 0.6s ease-out forwards;
+      }
+
+      .trace.drawn[data-direction="top"] .trace-line,
+      .trace.drawn[data-direction="left"] .trace-line {
+        stroke-dashoffset: -400;
+      }
+
+      /* CPU Chip */
+      .cpu {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 180px;
+        height: 180px;
+        opacity: 0;
+        transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 100; /* ← ВИЩЕ TRACES! */
+      }
+
+      .cpu.active {
+        opacity: 1;
+        animation: cpuPulse 3s ease-in-out infinite;
+      }
+
+      .cpu-inner {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+        border: 3px solid #4caf50;
+        border-radius: 12px;
+        box-shadow:
+          0 0 30px rgba(76, 175, 80, 0.4),
+          inset 0 0 30px rgba(76, 175, 80, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .cpu-inner::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+          45deg,
+          transparent 30%,
+          rgba(76, 175, 80, 0.1) 50%,
+          transparent 70%
+        );
+        animation: shine 3s ease-in-out infinite;
+      }
+
+      .cpu-grid {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image:
+          repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 8px,
+            rgba(76, 175, 80, 0.1) 8px,
+            rgba(76, 175, 80, 0.1) 9px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 8px,
+            rgba(76, 175, 80, 0.1) 8px,
+            rgba(76, 175, 80, 0.1) 9px
+          );
+        opacity: 0.5;
+      }
+
+      .cpu-label {
+        font-size: 24px;
+        font-weight: 900;
+        color: #4caf50;
+        letter-spacing: 4px;
+        text-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+        position: relative;
+        z-index: 1;
+        font-family: "Courier New", monospace;
+      }
+
+      /* Logo */
+      .logo-reveal {
+        position: absolute;
+        bottom: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        width: 100%;
+        opacity: 0;
+        z-index: 200; /* ← ВИЩЕ ВСЬОГО */
+      }
+
+      .logo-reveal.visible {
+        animation: fadeIn 0.8s ease-out forwards;
+      }
+
+      .main-logo {
+        font-size: 84px;
+        font-weight: 900;
+        color: white;
+        margin: 0 0 16px 0;
+        letter-spacing: 12px;
+        text-shadow:
+          0 0 40px rgba(76, 175, 80, 0.5),
+          0 0 80px rgba(76, 175, 80, 0.3);
+      }
+
+      .logo-letter {
+        display: inline-block;
+        opacity: 0;
+        transform: translateY(-30px) scale(0.5);
+      }
+
+      .logo-letter.animate {
+        animation: letterReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      }
+
+      .tagline-text {
+        color: rgba(255, 255, 255, 0.95); /* ← ЯСКРАВІШЕ */
+        font-size: 16px;
+        font-weight: 400;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        opacity: 0;
+        animation: fadeIn 0.6s ease-out 0.6s forwards;
+        /* ← BACKGROUND ДЛЯ ЧИТАБЕЛЬНОСТІ */
+        background: rgba(10, 26, 10, 0.85);
+        padding: 10px 28px;
+        border-radius: 24px;
+        backdrop-filter: blur(10px);
+        display: inline-block;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+      }
+
+      /* Status */
+      .status-bar {
+        position: absolute;
+        bottom: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #4caf50;
+        font-size: 13px;
+        font-family: "Courier New", monospace;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        opacity: 0;
+        z-index: 200; /* ← ВИЩЕ ВСЬОГО */
+      }
+
+      .status-bar.visible {
+        animation: fadeIn 0.4s ease-out forwards;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        background: #4caf50;
+        border-radius: 50%;
+        box-shadow: 0 0 12px #4caf50;
+        animation: statusPulse 1.5s ease-in-out infinite;
+      }
+
+      /* ============================================ */
+      /* ANIMATIONS */
+      /* ============================================ */
+
+      @keyframes drawTrace {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      @keyframes cpuPulse {
+        0%,
+        100% {
+          transform: translate(-50%, -50%) scale(1);
+          filter: drop-shadow(0 0 30px rgba(76, 175, 80, 0.4));
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.02);
+          filter: drop-shadow(0 0 40px rgba(76, 175, 80, 0.6));
+        }
+      }
+
+      @keyframes shine {
+        0% {
+          transform: translateX(-100%) translateY(-100%) rotate(45deg);
+        }
+        100% {
+          transform: translateX(100%) translateY(100%) rotate(45deg);
+        }
+      }
+
+      @keyframes letterReveal {
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes fadeIn {
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes statusPulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.6;
+          transform: scale(1.4);
+        }
+      }
+
+      /* Mobile */
+      @media (max-width: 768px) {
+        .circuit-board {
+          width: 400px;
+          height: 400px;
+        }
+
+        .cpu {
+          width: 140px;
+          height: 140px;
+        }
+
+        .cpu-label {
+          font-size: 18px;
+        }
+
+        .main-logo {
+          font-size: 56px;
+          letter-spacing: 6px;
+        }
+
+        .tagline-text {
+          font-size: 13px;
+          padding: 8px 20px;
+        }
+      }
+    </style>
+
+    <script type="text/javascript">
+      // GitHub Pages SPA redirect handler
+      (function (l) {
+        if (l.search[1] === "/") {
+          var decoded = l.search
+            .slice(1)
+            .split("&")
+            .map(function (s) {
+              return s.replace(/~and~/g, "&");
+            })
+            .join("?");
+          window.history.replaceState(
+            null,
+            null,
+            l.pathname.slice(0, -1) + decoded + l.hash,
+          );
+        }
+      })(window.location);
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- ⭐ INTRO LOADER -->
+    <div id="intro-loader">
+      <canvas id="intro-canvas"></canvas>
+
+      <div class="circuit-board">
+        <!-- SVG Traces -->
+        <svg class="traces" viewBox="0 0 800 800">
+          <!-- Vertical TOP -->
+          <g class="trace" data-direction="top" data-delay="0">
+            <path d="M 300 400 L 300 0" class="trace-line" />
+            <path d="M 330 400 L 330 0" class="trace-line" />
+          </g>
+          <g class="trace" data-direction="top" data-delay="0.1">
+            <path d="M 370 400 L 370 0" class="trace-line" />
+          </g>
+          <g class="trace" data-direction="top" data-delay="0.15">
+            <path d="M 430 400 L 430 0" class="trace-line" />
+          </g>
+          <g class="trace" data-direction="top" data-delay="0.2">
+            <path d="M 470 400 L 470 0" class="trace-line" />
+            <path d="M 500 400 L 500 0" class="trace-line" />
+          </g>
+
+          <!-- Vertical BOTTOM -->
+          <g class="trace" data-direction="bottom" data-delay="0">
+            <path d="M 300 400 L 300 800" class="trace-line" />
+            <path d="M 330 400 L 330 800" class="trace-line" />
+          </g>
+          <g class="trace" data-direction="bottom" data-delay="0.1">
+            <path d="M 370 400 L 370 800" class="trace-line" />
+          </g>
+          <g class="trace" data-direction="bottom" data-delay="0.15">
+            <path d="M 430 400 L 430 800" class="trace-line" />
+          </g>
+          <g class="trace" data-direction="bottom" data-delay="0.2">
+            <path d="M 470 400 L 470 800" class="trace-line" />
+            <path d="M 500 400 L 500 800" class="trace-line" />
+          </g>
+
+          <!-- Horizontal LEFT -->
+          <g class="trace" data-direction="left" data-delay="0.25">
+            <path d="M 400 300 L 0 300" class="trace-line" />
+            <path d="M 400 330 L 0 330" class="trace-line" />
+          </g>
+          <g class="trace" data-direction="left" data-delay="0.3">
+            <path d="M 400 370 L 0 370" class="trace-line" />
+          </g>
+          <g class="trace" data-direction="left" data-delay="0.35">
+            <path d="M 400 430 L 0 430" class="trace-line" />
+          </g>
+          <g class="trace" data-direction="left" data-delay="0.4">
+            <path d="M 400 470 L 0 470" class="trace-line" />
+            <path d="M 400 500 L 0 500" class="trace-line" />
+          </g>
+
+          <!-- Horizontal RIGHT -->
+          <g class="trace" data-direction="right" data-delay="0.25">
+            <path d="M 400 300 L 800 300" class="trace-line" />
+            <path d="M 400 330 L 800 330" class="trace-line" />
+          </g>
+          <g class="trace" data-direction="right" data-delay="0.3">
+            <path d="M 400 370 L 800 370" class="trace-line" />
+          </g>
+          <g class="trace" data-direction="right" data-delay="0.35">
+            <path d="M 400 430 L 800 430" class="trace-line" />
+          </g>
+          <g class="trace" data-direction="right" data-delay="0.4">
+            <path d="M 400 470 L 800 470" class="trace-line" />
+            <path d="M 400 500 L 800 500" class="trace-line" />
+          </g>
+        </svg>
+
+        <!-- CPU Chip -->
+        <div class="cpu">
+          <div class="cpu-inner">
+            <div class="cpu-grid"></div>
+            <span class="cpu-label">GATIFY</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logo -->
+      <div class="logo-reveal">
+        <h1 class="main-logo">
+          <span class="logo-letter">G</span>
+          <span class="logo-letter">A</span>
+          <span class="logo-letter">T</span>
+          <span class="logo-letter">I</span>
+          <span class="logo-letter">F</span>
+          <span class="logo-letter">Y</span>
+        </h1>
+        <p class="tagline-text">Digital Logic Circuit Simulator</p>
+      </div>
+
+      <!-- Status -->
+      <div class="status-bar">
+        <div class="status-dot"></div>
+        <span>System Initialized</span>
+      </div>
+    </div>
+
+    <!-- ⭐ REACT APP (ховається) -->
+    <div id="root" style="opacity: 0; transition: opacity 0.8s ease-in"></div>
+
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- ⭐ ANIMATION SCRIPT -->
+    <script>
+      // Grid canvas animation
+      const canvas = document.getElementById("intro-canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      let offset = 0;
+      function drawGrid() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "rgba(76, 175, 80, 0.08)";
+        ctx.lineWidth = 1;
+        const size = 40;
+
+        for (let x = -offset; x < canvas.width; x += size) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.stroke();
+        }
+
+        for (let y = -offset; y < canvas.height; y += size) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+
+        offset = (offset + 0.3) % size;
+        requestAnimationFrame(drawGrid);
+      }
+      drawGrid();
+
+      // Animation timeline
+      setTimeout(
+        () => document.querySelector(".cpu").classList.add("active"),
+        300,
+      );
+      setTimeout(() => {
+        document.querySelectorAll(".trace").forEach((trace) => {
+          const delay = parseFloat(trace.dataset.delay) * 1000;
+          setTimeout(() => trace.classList.add("drawn"), delay + 800);
+        });
+      }, 800);
+
+      setTimeout(() => {
+        const logo = document.querySelector(".logo-reveal");
+        logo.classList.add("visible");
+        document.querySelectorAll(".logo-letter").forEach((letter, i) => {
+          setTimeout(() => letter.classList.add("animate"), i * 80);
+        });
+      }, 2500);
+
+      setTimeout(() => {
+        document.querySelector(".status-bar").classList.add("visible");
+      }, 2500);
+
+      // Hide intro, show React
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          document.getElementById("intro-loader").classList.add("fade-out");
+          document.getElementById("root").style.opacity = "1";
+          setTimeout(() => {
+            document.getElementById("intro-loader").remove();
+          }, 800);
+        }, 4000);
+      });
+    </script>
   </body>
 </html>

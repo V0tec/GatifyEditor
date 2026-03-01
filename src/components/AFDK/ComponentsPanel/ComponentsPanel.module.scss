@@ -1,7 +1,13 @@
 .panel {
-  background: #2c2c2c;
+  // ⭐ GLASSMORPHISM
+  background: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(76, 175, 80, 0.15);
+  box-shadow: 4px 0 30px rgba(0, 0, 0, 0.3);
+
   padding: 10px;
-  width: 200px;
+  // width: 200px;
   color: white;
   overflow-y: auto;
   max-height: calc(100vh - 80px);
@@ -9,42 +15,61 @@
   h3 {
     margin-bottom: 15px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
+    color: #4caf50; // ⭐ Зелений заголовок
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
   }
 
   .category {
     margin-bottom: 8px;
 
     .categoryButton {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      white-space: nowrap;
+
       width: 100%;
       padding: 10px 12px;
-      background: linear-gradient(135deg, #444 0%, #3a3a3a 100%);
+
+      // ⭐ GLASS CATEGORY
+      background: rgba(76, 175, 80, 0.1);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(76, 175, 80, 0.25);
+
       color: #fff;
-      border: none;
       cursor: pointer;
-      border-radius: 6px;
+      border-radius: 8px;
       font-weight: 600;
       font-size: 14px;
       text-align: left;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       display: flex;
       align-items: center;
       justify-content: space-between;
 
       &:hover {
-        background: linear-gradient(135deg, #555 0%, #4a4a4a 100%);
-        transform: translateX(2px);
+        background: rgba(76, 175, 80, 0.2);
+        border-color: rgba(76, 175, 80, 0.4);
+        transform: translateX(4px);
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
       }
 
       &:active {
-        transform: translateX(0);
+        transform: translateX(2px);
       }
+    }
+
+    .icon {
+      width: 18px;
+      height: 18px;
     }
 
     .categoryContent {
       margin-top: 8px;
-      padding-left: 8px;
-      border-left: 2px solid #555;
+      padding-left: 12px;
+      border-left: 2px solid rgba(76, 175, 80, 0.3); // ⭐ Зелена лінія
       animation: slideDown 0.3s ease;
     }
   }
@@ -56,22 +81,27 @@
     .mainButton {
       width: 100%;
       padding: 8px 10px;
-      background: #3a3a3a;
+
+      // ⭐ GLASS COMPONENT
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+
       color: #ddd;
-      border: 1px solid #555;
       cursor: pointer;
-      border-radius: 4px;
+      border-radius: 6px;
       font-size: 13px;
       text-align: left;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: space-between;
 
       &:hover {
-        background: #4a4a4a;
-        border-color: #007acc;
-        color: #fff;
+        background: rgba(76, 175, 80, 0.15);
+        border-color: rgba(76, 175, 80, 0.4);
+        color: #4caf50;
+        box-shadow: 0 2px 10px rgba(76, 175, 80, 0.15);
       }
 
       &[draggable="true"] {
@@ -80,6 +110,7 @@
         &:active {
           cursor: grabbing;
           transform: scale(0.98);
+          background: rgba(76, 175, 80, 0.2);
         }
       }
     }
@@ -94,25 +125,30 @@
 
       .submenuItem {
         padding: 6px 10px;
-        background: #2e2e2e;
+
+        // ⭐ GLASS SUBMENU
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(76, 175, 80, 0.2);
+
         color: #bbb;
-        border: 1px dashed #666;
         cursor: grab;
-        border-radius: 3px;
+        border-radius: 4px;
         font-size: 12px;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
 
         &:hover {
-          background: #3e3e3e;
-          color: #fff;
-          border-color: #007acc;
-          border-style: solid;
-          transform: translateX(4px);
+          background: rgba(76, 175, 80, 0.15);
+          color: #4caf50;
+          border-color: rgba(76, 175, 80, 0.5);
+          transform: translateX(6px);
+          box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
         }
 
         &:active {
           cursor: grabbing;
           transform: scale(0.95);
+          background: rgba(76, 175, 80, 0.25);
         }
       }
     }
@@ -132,19 +168,27 @@
   }
 }
 
+// ⭐ GLASS SCROLLBAR
 .panel::-webkit-scrollbar {
   width: 8px;
 }
 
 .panel::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: rgba(30, 30, 30, 0.5);
+  backdrop-filter: blur(4px);
 }
 
 .panel::-webkit-scrollbar-thumb {
-  background: #555;
+  background: rgba(76, 175, 80, 0.3);
   border-radius: 4px;
+  border: 1px solid rgba(76, 175, 80, 0.2);
 
   &:hover {
-    background: #666;
+    background: rgba(76, 175, 80, 0.5);
   }
+}
+
+// ⭐ SCROLLBAR CORNER
+.panel::-webkit-scrollbar-corner {
+  background: rgba(30, 30, 30, 0.5);
 }

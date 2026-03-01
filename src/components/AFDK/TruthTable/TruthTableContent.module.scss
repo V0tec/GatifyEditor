@@ -1,0 +1,45 @@
+@use "../../../scss/variables" as *;
+
+.content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  background: $color-bg-light;
+  border-bottom: 1px solid $color-border;
+
+  h3 {
+    margin: 0;
+    font-size: $font-size-lg;
+    font-weight: 600;
+    color: $color-text-primary;
+    flex: 1;
+  }
+}
+
+.backBtn {
+  padding: $spacing-xs $spacing-md;
+  background: $color-bg-dark;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  color: $color-text-primary;
+  font-size: $font-size-base;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: $color-bg-lighter;
+    border-color: $color-primary;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}

@@ -1,6 +1,12 @@
 import styles from "./Clock.module.scss";
 
-function Clock({ component, selected, onMouseDown, onContextMenu }) {
+function Clock({
+  component,
+  selected,
+  onMouseDown,
+  onContextMenu,
+  onPortInvert,
+}) {
   const portRadius = 6;
 
   return (
@@ -69,7 +75,14 @@ function Clock({ component, selected, onMouseDown, onContextMenu }) {
                   backgroundColor: displayValue === 1 ? "#4CAF50" : "#f44336",
                   border: "2px solid #333",
                   borderRadius: "50%",
+                  cursor: "pointer",
                   zIndex: 100,
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onPortInvert) {
+                    onPortInvert(component.id, output.id, "output");
+                  }
                 }}
               />
 
@@ -85,9 +98,24 @@ function Clock({ component, selected, onMouseDown, onContextMenu }) {
                   pointerEvents: "none",
                 }}
               >
-                {output.label}
+                <span style={{ position: "relative", display: "inline-block" }}>
+                  {output.label}
+                  {/* ⭐ ПОЛОСКА ЗВЕРХУ */}
+                  {output.inverted && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "-1px",
+                        left: "0",
+                        width: "100%",
+                        height: "1px",
+                        backgroundColor: "white",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  )}
+                </span>
               </div>
-
               {/* ЗНАЧЕННЯ */}
               <div
                 style={{
@@ -102,6 +130,22 @@ function Clock({ component, selected, onMouseDown, onContextMenu }) {
               >
                 {displayValue}
               </div>
+
+              {/* ⭐ ІНДИКАТОР ІНВЕРТОРА */}
+              {output.inverted && (
+                <div
+                  style={{
+                    position: "absolute",
+                    left: output.localX - portRadius - 3,
+                    top: output.localY - portRadius - 3,
+                    width: portRadius * 2 + 6,
+                    height: portRadius * 2 + 6,
+                    border: "2px solid #ff9800",
+                    borderRadius: "50%",
+                    pointerEvents: "none",
+                  }}
+                />
+              )}
             </div>
           );
         })}

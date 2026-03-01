@@ -1,26 +1,27 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import ComponentsPanel from "../components/AFDK/ComponentsPanel/ComponentsPanel";
 import Workspace from "../components/AFDK/Workspace/Workspace";
-import TruthTableModal from "../components/AFDK/TruthTable/TruthTableModal";
-import TimingDiagramModal from "../components/AFDK/TimingDiagram/TimingDiagramModal";
+import TruthTableContent from "../components/AFDK/TruthTable/TruthTableContent";
+import TimingDiagramContent from "../components/AFDK/TimingDiagram/TimingDiagramContent";
 import styles from "../scss/AFDK.module.scss";
 import Header from "../components/AFDK/Header/Header";
 import Notification from "../components/AFDK/Notification/Notification";
 import { useHistory } from "../components/AFDK/Workspace/hooks/useHistory";
+import FloatingWindow from "../components/AFDK/FloatingWindow/FloatingWindow";
+import MinimizeBar from "../components/AFDK/FloatingWindow/MinimizeBar";
+import { useFloatingWindows } from "../components/AFDK/FloatingWindow/useFloatingWindows";
 
 function AFDK() {
   const [components, setComponents] = useState([]);
   const [wires, setWires] = useState([]);
   const [points, setPoints] = useState([]);
 
-  // ⭐ ПІДКЛЮЧАЄМО ІСТОРІЮ
   const historyHook = useHistory({
     components: [],
     wires: [],
     points: [],
   });
 
-  // ⭐ Функція збереження
   const saveToHistory = useCallback(() => {
     historyHook.saveState({
       components,
@@ -29,7 +30,6 @@ function AFDK() {
     });
   }, [components, wires, points, historyHook]);
 
-  // ⭐ UNDO
   const handleUndo = useCallback(() => {
     const prevState = historyHook.undo();
     if (prevState) {
@@ -39,7 +39,6 @@ function AFDK() {
     }
   }, [historyHook]);
 
-  // ⭐ REDO
   const handleRedo = useCallback(() => {
     const nextState = historyHook.redo();
     if (nextState) {
@@ -55,14 +54,26 @@ function AFDK() {
   const [zoom, setZoom] = useState(1);
   const [isSimulating, setIsSimulating] = useState(false);
   const [notification, setNotification] = useState(null);
-  const [isTruthTableOpen, setIsTruthTableOpen] = useState(false);
-  const [isTimingDiagramOpen, setIsTimingDiagramOpen] = useState(false);
+
+  const {
+    windows,
+    openWindow,
+    closeWindow,
+    minimizeWindow,
+    maximizeWindow,
+    focusWindow,
+    restoreWindow,
+  } = useFloatingWindows();
+
   const [junctions, setJunctions] = useState([]);
   const [simulationCounter, setSimulationCounter] = useState(0);
 
+  const [timingDiagramSelectedPoints, setTimingDiagramSelectedPoints] =
+    useState([]);
+  const [timingDiagramTicks, setTimingDiagramTicks] = useState([]);
+
   const fileInputRef = useRef(null);
   const isLoadingRef = useRef(false);
-  const hasLoadedRef = useRef(false);
 
   const showNotification = (message, type = "error") => {
     setNotification({ message, type });
@@ -82,20 +93,9 @@ function AFDK() {
     setPointType(type);
   };
 
-  const handleOpenTruthTable = () => {
-    setIsTruthTableOpen(true);
-  };
-
-  const handleCloseTruthTable = () => {
-    setIsTruthTableOpen(false);
-  };
-
-  const handleOpenTimingDiagram = () => {
-    setIsTimingDiagramOpen(true);
-  };
-
-  const handleCloseTimingDiagram = () => {
-    setIsTimingDiagramOpen(false);
+  const handleClearTimingDiagram = () => {
+    setTimingDiagramSelectedPoints([]);
+    setTimingDiagramTicks([]);
   };
 
   const handleTogglePoint = (pointId) => {
@@ -108,27 +108,89 @@ function AFDK() {
     );
   };
 
-  // ⭐ НОВА ФУНКЦІЯ: перемикання точки + додавання в чергу симуляції
   const handleTogglePointWithSimulation = useCallback(
     (pointId) => {
-      // 1. Знаходимо точку
       const point = points.find((p) => p.id === pointId);
       if (!point || point.type !== "input") return;
 
       const newValue = point.value === 1 ? 0 : 1;
 
-      // 2. Оновлюємо стейт
       setPoints((prev) =>
         prev.map((p) => (p.id === pointId ? { ...p, value: newValue } : p)),
       );
 
-      // 3. Викликаємо глобальну функцію (додає подію в чергу)
       if (window.__restartFromPoint && isSimulating) {
         window.__restartFromPoint(pointId, newValue);
       }
     },
     [points, isSimulating],
   );
+
+  const handleRunSimulation = () => {
+    if (window.__runWorkspaceSimulation) {
+      window.__runWorkspaceSimulation();
+
+      setTimeout(() => {
+        setSimulationCounter((prev) => prev + 1);
+      }, 50);
+    }
+  };
+
+  const handleOpenTruthTable = () => {
+    openWindow(
+      "truthTable",
+      "📊 Таблиця істинності",
+      <TruthTableContent
+        points={points}
+        wires={wires}
+        junctions={junctions}
+        components={components}
+        onClose={() => closeWindow("truthTable")}
+      />,
+      { x: 100, y: 100 },
+      { width: 900, height: 600 },
+    );
+  };
+
+  const handleOpenTimingDiagram = () => {
+    openWindow(
+      "timingDiagram",
+      "⏱️ Часові діаграми",
+      <TimingDiagramContent
+        points={points}
+        wires={wires}
+        junctions={junctions}
+        components={components}
+        onRunSimulation={handleRunSimulation}
+        onTogglePoint={handleTogglePointWithSimulation}
+        simulationCounter={simulationCounter}
+        isSimulating={isSimulating}
+        selectedPoints={timingDiagramSelectedPoints}
+        setSelectedPoints={setTimingDiagramSelectedPoints}
+        ticks={timingDiagramTicks}
+        setTicks={setTimingDiagramTicks}
+        onClear={handleClearTimingDiagram}
+      />,
+      { x: 200, y: 100 },
+      { width: 1200, height: 700 },
+    );
+  };
+
+  // ⭐ АВТООНОВЛЕННЯ TimingDiagram при зміні тіків
+  useEffect(() => {
+    if (windows.length === 0) return;
+
+    const timingWindow = windows.find((w) => w.id === "timingDiagram");
+    if (timingWindow && !timingWindow.isMinimized) {
+      console.log("🔄 Ticks changed - refreshing TimingDiagram");
+      handleOpenTimingDiagram();
+    }
+  }, [
+    timingDiagramTicks,
+    timingDiagramSelectedPoints,
+    handleOpenTimingDiagram,
+    windows,
+  ]);
 
   const handleSave = () => {
     const schemeData = {
@@ -151,9 +213,7 @@ function AFDK() {
   };
 
   const handleLoad = () => {
-    if (isLoadingRef.current) {
-      return;
-    }
+    if (isLoadingRef.current) return;
 
     isLoadingRef.current = true;
 
@@ -230,31 +290,15 @@ function AFDK() {
     }
   };
 
-  const handleRunSimulation = () => {
-    if (window.__runWorkspaceSimulation) {
-      window.__runWorkspaceSimulation();
-
-      setTimeout(() => {
-        setSimulationCounter((prev) => {
-          return prev + 1;
-        });
-      }, 50);
-    } else {
-    }
-  };
-
   const handleToggleSimulation = () => {
     setIsSimulating((prev) => !prev);
   };
 
-  // ⭐ АВТОМАТИЧНЕ ЗБЕРЕЖЕННЯ В ІСТОРІЮ
   useEffect(() => {
-    // Пропускаємо початковий стан
     if (components.length === 0 && wires.length === 0 && points.length === 0) {
       return;
     }
 
-    // Дебаунс - зберігаємо через 300мс після останньої зміни
     const timeout = setTimeout(() => {
       saveToHistory();
     }, 300);
@@ -262,14 +306,11 @@ function AFDK() {
     return () => clearTimeout(timeout);
   }, [components, wires, points, saveToHistory]);
 
-  // ⭐ АВТОЗБЕРЕЖЕННЯ В localStorage
   useEffect(() => {
-    // Не зберігаємо порожній стан
     if (components.length === 0 && wires.length === 0 && points.length === 0) {
       return;
     }
 
-    // Дебаунс - зберігаємо через 1 секунду після останньої зміни
     const timeout = setTimeout(() => {
       const state = {
         components,
@@ -284,7 +325,6 @@ function AFDK() {
     return () => clearTimeout(timeout);
   }, [components, wires, points]);
 
-  // ⭐ ВІДНОВЛЕННЯ ПРИ ЗАВАНТАЖЕННІ (БЕЗ ПІДТВЕРДЖЕННЯ)
   useEffect(() => {
     const saved = localStorage.getItem("afdk-autosave");
 
@@ -296,7 +336,6 @@ function AFDK() {
         setWires(state.wires || []);
         setPoints(state.points || []);
       } catch (err) {
-        // Якщо помилка - видаляємо зіпсоване збереження
         localStorage.removeItem("afdk-autosave");
       }
     }
@@ -330,27 +369,25 @@ function AFDK() {
         zoom={zoom}
       />
 
-      <TruthTableModal
-        isOpen={isTruthTableOpen}
-        onClose={handleCloseTruthTable}
-        points={points}
-        wires={wires}
-        junctions={junctions}
-        components={components}
-      />
+      {windows.map((window) => (
+        <FloatingWindow
+          key={window.id}
+          id={window.id}
+          title={window.title}
+          isMinimized={window.isMinimized}
+          isMaximized={window.isMaximized}
+          zIndex={window.zIndex}
+          defaultPosition={window.defaultPosition}
+          defaultSize={window.defaultSize}
+          onClose={() => closeWindow(window.id)}
+          onMinimize={() => minimizeWindow(window.id)}
+          onMaximize={(value) => maximizeWindow(window.id, value)}
+        >
+          {window.content}
+        </FloatingWindow>
+      ))}
 
-      <TimingDiagramModal
-        isOpen={isTimingDiagramOpen}
-        onClose={handleCloseTimingDiagram}
-        points={points}
-        wires={wires}
-        junctions={junctions}
-        components={components}
-        onRunSimulation={handleRunSimulation}
-        onTogglePoint={handleTogglePointWithSimulation}
-        simulationCounter={simulationCounter}
-        isSimulating={isSimulating}
-      />
+      <MinimizeBar windows={windows} onRestore={restoreWindow} />
 
       <input
         type="file"

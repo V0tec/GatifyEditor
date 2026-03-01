@@ -211,7 +211,7 @@ function Multiplexer({
                       ? "#4CAF50"
                       : "#f44336"
                     : "#666",
-                  border: isInverted ? "3px solid #ff9800" : "2px solid #333",
+                  border: "2px solid #333",
                   borderRadius: "50%",
                   cursor: "pointer",
                   zIndex: 100,
@@ -225,7 +225,7 @@ function Multiplexer({
               <div
                 style={{
                   position: "absolute",
-                  left: output.wireEndX - 28,
+                  left: output.wireEndX - 38,
                   top: output.wireEndY - 8,
                   fontSize: "10px",
                   fontWeight: "600",
@@ -241,7 +241,7 @@ function Multiplexer({
                 <div
                   style={{
                     position: "absolute",
-                    left: output.wireEndX - portRadius - 28,
+                    left: output.wireEndX - portRadius - 23,
                     top: output.wireEndY - portRadius - 3,
                     width: portRadius * 2 + 6,
                     height: portRadius * 2 + 6,

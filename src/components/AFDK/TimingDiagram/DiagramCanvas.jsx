@@ -9,6 +9,13 @@ const PADDING_TOP = 40; // Відступ зверху
 
 function DiagramCanvas({ points, selectedPoints, ticks, onPointClick }) {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (containerRef.current && ticks.length > 0) {
+      containerRef.current.scrollLeft = containerRef.current.scrollWidth;
+    }
+  }, [ticks.length]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -143,7 +150,7 @@ function DiagramCanvas({ points, selectedPoints, ticks, onPointClick }) {
   const canvasHeight = selectedPoints.length * ROW_HEIGHT + PADDING_TOP + 20;
 
   return (
-    <div className={styles.diagramCanvas}>
+    <div className={styles.diagramCanvas} ref={containerRef}>
       {selectedPoints.length === 0 ? (
         <p className={styles.noData}>Оберіть точки зліва для відображення</p>
       ) : (

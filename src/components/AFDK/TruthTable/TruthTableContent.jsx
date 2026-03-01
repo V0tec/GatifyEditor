@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import TruthTableConfig from "./TruthTableConfig";
 import TruthTableView from "./TruthTableView";
 import {
@@ -6,20 +6,29 @@ import {
   exportToCSV,
   exportToJSON,
 } from "./truthTableGenerator";
-import styles from "./TruthTableModal.module.scss";
+import styles from "./TruthTableContent.module.scss";
 
-function TruthTableModal({
-  isOpen,
-  onClose,
-  points,
-  wires,
-  junctions,
-  components,
-}) {
+function TruthTableContent({ points, wires, junctions, components, onClose }) {
   const [step, setStep] = useState("config"); // 'config' або 'view'
   const [truthTable, setTruthTable] = useState(null);
+  const [, forceUpdate] = useState({});
 
-  if (!isOpen) return null;
+  console.log("🔵 TruthTableContent RENDER:", {
+    pointsCount: points.length,
+    wiresCount: wires.length,
+    componentsCount: components.length,
+    step,
+  });
+
+  // ⭐ ФОРСУЄМО РЕРЕНДЕР при зміні points, wires, components
+  useEffect(() => {
+    console.log("🟢 TruthTableContent useEffect TRIGGERED!", {
+      pointsCount: points.length,
+      wiresCount: wires.length,
+      componentsCount: components.length,
+    });
+    forceUpdate({});
+  }, [points, wires, junctions, components]);
 
   const handleGenerate = (selectedInputPoints, selectedOutputPoints) => {
     try {
@@ -40,12 +49,6 @@ function TruthTableModal({
 
   const handleBack = () => {
     setStep("config");
-  };
-
-  const handleClose = () => {
-    setStep("config");
-    setTruthTable(null);
-    onClose();
   };
 
   const handleExportCSV = () => {
@@ -71,38 +74,32 @@ function TruthTableModal({
   };
 
   return (
-    <div className={styles.overlay} onClick={handleClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeBtn} onClick={handleClose}>
-          ✕
-        </button>
+    <div className={styles.content}>
+      {step === "config" && (
+        <TruthTableConfig
+          points={points}
+          onGenerate={handleGenerate}
+          onCancel={onClose}
+        />
+      )}
 
-        {step === "config" && (
-          <TruthTableConfig
-            points={points}
-            onGenerate={handleGenerate}
-            onCancel={handleClose}
+      {step === "view" && (
+        <>
+          <div className={styles.header}>
+            <button onClick={handleBack} className={styles.backBtn}>
+              ← Назад
+            </button>
+            <h3>Таблиця істинності</h3>
+          </div>
+          <TruthTableView
+            truthTable={truthTable}
+            onExportCSV={handleExportCSV}
+            onExportJSON={handleExportJSON}
           />
-        )}
-
-        {step === "view" && (
-          <>
-            <div className={styles.header}>
-              <button onClick={handleBack} className={styles.backBtn}>
-                ← Назад
-              </button>
-              <h3>Таблиця істинності</h3>
-            </div>
-            <TruthTableView
-              truthTable={truthTable}
-              onExportCSV={handleExportCSV}
-              onExportJSON={handleExportJSON}
-            />
-          </>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }
 
-export default TruthTableModal;
+export default TruthTableContent;

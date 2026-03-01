@@ -1,0 +1,191 @@
+@use "../../../scss/variables" as *;
+@use "sass:color";
+
+.config {
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  height: 100%;
+  overflow-y: auto;
+
+  h3 {
+    margin: 0;
+    font-size: $font-size-xl;
+    font-weight: 600;
+    color: $color-text-primary;
+  }
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $color-bg-dark;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $color-border-light;
+    border-radius: 4px;
+
+    &:hover {
+      background: #666;
+    }
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+
+  h4 {
+    margin: 0;
+    font-size: $font-size-lg;
+    font-weight: 600;
+    color: $color-text-primary;
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+  }
+}
+
+.pointsList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.pointItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+  background: $color-bg-dark;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: $color-bg-lighter;
+    border-color: $color-primary;
+  }
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: $color-primary;
+  }
+}
+
+.pointLabel {
+  font-weight: 500;
+  font-size: $font-size-base;
+  color: $color-text-primary;
+  flex: 1;
+}
+
+.pointCoords {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  background: $color-bg-lighter;
+  padding: 2px $spacing-sm;
+  border-radius: $radius-sm;
+}
+
+.noPoints {
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  text-align: center;
+  padding: $spacing-lg;
+  background: $color-bg-dark;
+  border: 1px dashed $color-border;
+  border-radius: $radius-sm;
+}
+
+.info {
+  padding: $spacing-md;
+  background: $color-bg-dark;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+
+  p {
+    margin: 0;
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+
+    strong {
+      color: $color-text-primary;
+      font-weight: 600;
+    }
+  }
+}
+
+.warning {
+  color: $color-accent;
+  font-weight: 500;
+}
+
+.buttons {
+  display: flex;
+  gap: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1px solid $color-border;
+  margin-top: auto;
+}
+
+.cancelBtn,
+.generateBtn {
+  flex: 1;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-sm;
+  font-size: $font-size-base;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $transition-fast;
+  border: none;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.cancelBtn {
+  background: $color-bg-lighter;
+  color: $color-text-primary;
+  border: 1px solid $color-border;
+
+  &:hover {
+    background: $color-bg-light;
+    border-color: $color-border-light;
+  }
+}
+
+.generateBtn {
+  background: $color-primary;
+  color: white;
+  border: 1px solid $color-primary;
+
+  &:hover {
+    background: color.scale($color-primary, $lightness: -10%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  }
+
+  &:disabled {
+    background: $color-bg-lighter;
+    color: $color-text-disabled;
+    cursor: not-allowed;
+    border-color: $color-border;
+
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}

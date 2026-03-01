@@ -14,7 +14,7 @@ function Header({
   onToggleSimulation,
   isSimulating,
   onOpenTruthTable,
-  onOpenTimingDiagram, // ⭐ НОВИЙ ПРОПС
+  onOpenTimingDiagram,
   onClear,
   zoom,
 }) {
@@ -42,16 +42,16 @@ function Header({
   };
 
   const handleSelectPointType = (type) => {
-    // ⭐ Якщо клікнули на вже активний тип - ВИМИКАЄМО режим точок
+    // Якщо клікнули на вже активний тип - ВИМИКАЄМО режим точок
     if (isPointMode && pointType === type) {
-      onTogglePointMode(); // Вимикає режим
+      onTogglePointMode();
       setShowPointDropdown(false);
     }
-    // ⭐ Якщо клікнули на інший тип - ПЕРЕМИКАЄМО тип
+    // Якщо клікнули на інший тип - ПЕРЕМИКАЄМО тип
     else {
-      onSetPointType(type); // Встановлюємо новий тип
+      onSetPointType(type);
 
-      // ⭐ Якщо режим точок НЕ активний - вмикаємо його
+      // Якщо режим точок НЕ активний - вмикаємо його
       if (!isPointMode) {
         onTogglePointMode();
       }
@@ -65,33 +65,71 @@ function Header({
       <div className={styles.logo}>
         <h1>Gatify Editor</h1>
       </div>
+
       {/* Група 1: Файли */}
       <div className={styles.toolbarGroup}>
-        <button onClick={onSave} title="Ctrl+S" className={styles.button}>
-          💾 Зберегти
+        <button
+          onClick={onSave}
+          className={styles.button}
+          data-tooltip="Зберегти (Ctrl+S)"
+        >
+          <img
+            className={styles.icon}
+            src="/GatifyEditor/icons/header/save.png"
+            alt="Зберегти"
+          />
         </button>
-        <button onClick={onLoad} title="Ctrl+L" className={styles.button}>
-          📂 Завантажити
+
+        <button
+          onClick={onLoad}
+          className={styles.button}
+          data-tooltip="Завантажити (Ctrl+L)"
+        >
+          <img
+            className={styles.icon}
+            src="/GatifyEditor/icons/header/download.png"
+            alt="Завантажити"
+          />
         </button>
-        <button onClick={onClear} className={styles.button}>
-          🗑️ Очистити
+
+        <button
+          onClick={onClear}
+          className={styles.button}
+          data-tooltip="Очистити"
+        >
+          <img
+            className={styles.icon}
+            src="/GatifyEditor/icons/header/delete.png"
+            alt="Очистити"
+          />
         </button>
       </div>
+
       {/* Група 2: Режими */}
       <div className={styles.toolbarGroup}>
         <button
           onClick={onToggleWireMode}
           className={`${styles.button} ${isWireMode ? styles.active : ""}`}
+          data-tooltip="Провід (Esc для виходу)"
         >
-          🔌 Провід
+          <img
+            className={styles.icon}
+            src="/GatifyEditor/icons/header/wire.png"
+            alt="Провід"
+          />
         </button>
 
         <div className={styles.dropdownWrapper} ref={dropdownRef}>
           <button
             onClick={handlePointButtonClick}
-            className={`${styles.button} ${isPointMode ? styles.active : ""}`}
+            className={`${styles.buttonWithText} ${isPointMode ? styles.active : ""}`}
           >
-            📍 Точки {showPointDropdown ? "▲" : "▼"}
+            <img
+              className={styles.icon}
+              src="/GatifyEditor/icons/header/point.png"
+              alt="Точки"
+            />
+            Точки {showPointDropdown ? "▲" : "▼"}
           </button>
 
           {showPointDropdown && (
@@ -116,22 +154,50 @@ function Header({
           )}
         </div>
       </div>
+
       {/* Група 3: Симуляція */}
       <div className={styles.toolbarGroup}>
-        <button onClick={onRunSimulation} className={styles.button}>
-          ▶ Запуск
+        <button
+          onClick={onToggleSimulation}
+          className={styles.button}
+          data-tooltip={isSimulating ? "Пауза" : "Запустити симуляцію"}
+        >
+          <img
+            className={styles.icon}
+            src={
+              isSimulating
+                ? "/GatifyEditor/icons/header/pause.png"
+                : "/GatifyEditor/icons/header/play.png"
+            }
+            alt={isSimulating ? "Пауза" : "Симуляція"}
+          />
         </button>
-        <button onClick={onToggleSimulation} className={styles.button}>
-          {isSimulating ? "⏸" : "⏯"} Авто
+
+        <button
+          onClick={onOpenTruthTable}
+          className={styles.button}
+          data-tooltip="Таблиця істинності"
+        >
+          <img
+            className={styles.icon}
+            src="/GatifyEditor/icons/header/table.png"
+            alt="Таблиця істинності"
+          />
         </button>
-        <button onClick={onOpenTruthTable} className={styles.button}>
-          📊 Таблиця істинності
-        </button>
-        {/* ⭐ НОВА КНОПКА ДЛЯ ЧАСОВИХ ДІАГРАМ */}
-        <button onClick={onOpenTimingDiagram} className={styles.button}>
-          ⏱️ Часові діаграми
+
+        <button
+          onClick={onOpenTimingDiagram}
+          className={styles.button}
+          data-tooltip="Часові діаграми"
+        >
+          <img
+            className={styles.icon}
+            src="/GatifyEditor/icons/header/diagrams.png"
+            alt="Часові діаграми"
+          />
         </button>
       </div>
+
       {/* Інфо */}
       <div className={styles.headerInfo}>
         Zoom: {Math.round(zoom * 100)}%{isWireMode && " | Режим проводу"}

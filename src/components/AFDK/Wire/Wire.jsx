@@ -33,9 +33,9 @@ const Wire = ({
     wireStyle.backgroundColor = color;
     wireStyle.boxShadow = `0 0 4px ${color}`;
     wireStyle.height =
-      direction === "right" || direction === "left" ? "3px" : wireStyle.height;
+      direction === "right" || direction === "left" ? "2px" : wireStyle.height;
     wireStyle.width =
-      direction === "down" || direction === "up" ? "3px" : wireStyle.width;
+      direction === "down" || direction === "up" ? "2px" : wireStyle.width;
   }
 
   // Виділення

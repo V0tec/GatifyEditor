@@ -1,0 +1,80 @@
+@use "../../../scss/variables" as *;
+
+.window {
+  width: 100%;
+  height: 100%;
+  background: $color-bg-dark;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.titleBar {
+  background: $color-bg-light;
+  border-bottom: 1px solid $color-border;
+  padding: $spacing-sm $spacing-md;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: move;
+  user-select: none;
+
+  &:hover {
+    background: $color-bg-lighter;
+  }
+}
+
+.title {
+  font-weight: 600;
+  font-size: $font-size-base;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.controls {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.controlBtn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: $color-text-secondary;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: $color-bg-lighter;
+    color: $color-text-primary;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.closeBtn {
+  &:hover {
+    background: $color-danger;
+    color: white;
+  }
+}
+
+.content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}

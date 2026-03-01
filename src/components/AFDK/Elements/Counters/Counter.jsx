@@ -181,7 +181,7 @@ function Counter({
                   style={{
                     position: "absolute",
                     left: input.wireEndX - portRadius - 3 + component.width / 2,
-                    top: input.wireEndY - portRadius - 3 + component.height / 2,
+                    top: input.wireEndY - portRadius - 4 + component.height / 2,
                     width: portRadius * 2 + 6,
                     height: portRadius * 2 + 6,
                     border: "2px solid #ff9800",
@@ -241,7 +241,7 @@ function Counter({
                       ? "#4CAF50"
                       : "#f44336"
                     : "#666",
-                  border: isInverted ? "3px solid #ff9800" : "2px solid #333",
+                  border: "2px solid #333",
                   borderRadius: "50%",
                   cursor: "pointer",
                   zIndex: 100,
@@ -274,7 +274,7 @@ function Counter({
                     left:
                       output.wireEndX - portRadius - 28 + component.width / 2,
                     top:
-                      output.wireEndY - portRadius - 3 + component.height / 2,
+                      output.wireEndY - portRadius - 4 + component.height / 2,
                     width: portRadius * 2 + 6,
                     height: portRadius * 2 + 6,
                     border: "2px solid #ff9800",

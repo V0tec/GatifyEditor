@@ -25,9 +25,12 @@ function Comparator({
 
   // Формуємо результат порівняння для відображення
   let displayResult = "";
-  if (component.type === "COMPARATOR_4BIT" || component.type === "COMPARATOR_8BIT") {
+  if (
+    component.type === "COMPARATOR_4BIT" ||
+    component.type === "COMPARATOR_8BIT"
+  ) {
     const bitCount = component.type === "COMPARATOR_4BIT" ? 4 : 8;
-    
+
     const A = component.inputs
       .slice(0, bitCount)
       .map((inp) => (inp.inverted ? (inp.value === 1 ? 0 : 1) : inp.value))
@@ -38,23 +41,23 @@ function Comparator({
       .map((inp) => (inp.inverted ? (inp.value === 1 ? 0 : 1) : inp.value))
       .reverse()
       .join("");
-    
+
     const numA = parseInt(A, 2) || 0;
     const numB = parseInt(B, 2) || 0;
-    
+
     let symbol = "=";
     if (numA > numB) symbol = ">";
     else if (numA < numB) symbol = "<";
-    
+
     displayResult = `${numA} ${symbol} ${numB}`;
   } else if (component.type === "COMPARATOR_1BIT") {
     const A = component.inputs[0]?.value ?? 0;
     const B = component.inputs[1]?.value ?? 0;
-    
+
     let symbol = "=";
     if (A > B) symbol = ">";
     else if (A < B) symbol = "<";
-    
+
     displayResult = `${A} ${symbol} ${B}`;
   }
 
@@ -190,7 +193,7 @@ function Comparator({
                   style={{
                     position: "absolute",
                     left: input.wireEndX - portRadius - 3 + component.width / 2,
-                    top: input.wireEndY - portRadius - 3 + component.height / 2,
+                    top: input.wireEndY - portRadius - 4 + component.height / 2,
                     width: portRadius * 2 + 6,
                     height: portRadius * 2 + 6,
                     border: "2px solid #ff9800",
@@ -250,7 +253,7 @@ function Comparator({
                       ? "#4CAF50"
                       : "#f44336"
                     : "#666",
-                  border: isInverted ? "3px solid #ff9800" : "2px solid #333",
+                  border: "2px solid #333",
                   borderRadius: "50%",
                   cursor: "pointer",
                   zIndex: 100,
@@ -283,7 +286,7 @@ function Comparator({
                     left:
                       output.wireEndX - portRadius - 28 + component.width / 2,
                     top:
-                      output.wireEndY - portRadius - 3 + component.height / 2,
+                      output.wireEndY - portRadius - 4 + component.height / 2,
                     width: portRadius * 2 + 6,
                     height: portRadius * 2 + 6,
                     border: "2px solid #ff9800",

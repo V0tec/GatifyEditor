@@ -197,7 +197,7 @@ function Element({
                       ? "#4CAF50"
                       : "#f44336"
                     : "#666",
-                  border: isInverted ? "3px solid #ff9800" : "2px solid #333",
+                  border: "2px solid #333",
                   borderRadius: "50%",
                   cursor: "pointer",
                   zIndex: 100,

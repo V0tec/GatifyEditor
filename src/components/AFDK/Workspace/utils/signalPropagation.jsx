@@ -1016,6 +1016,38 @@ export const initializeSimulation = (points, wires, components) => {
     });
   });
 
+  // ⭐ CLOCK ВИХОДИ ЯК ТОЧКИ
+  const clockComponents = components.filter((c) => c.type === "CLOCK");
+  clockComponents.forEach((clock) => {
+    clock.outputs.forEach((output) => {
+      // ⭐ Обчислюємо правильне значення
+      const clockValue = clock.state?.value || 0;
+      const actualValue = output.inverted
+        ? clockValue === 1
+          ? 0
+          : 1
+        : clockValue;
+
+      const virtualPoint = {
+        id: `${clock.id}-virtual-${output.id}`,
+        type: "input",
+        x: clock.x + output.wireEndX + clock.width / 2,
+        y: clock.y + output.wireEndY + clock.height / 2,
+        value: actualValue, // ← ПРАВИЛЬНЕ ЗНАЧЕННЯ
+      };
+
+      console.log(
+        `  ⏱️ Додаємо Clock вихід ${output.label} (value=${actualValue}) як точку`,
+      );
+
+      updateQueue.push({
+        type: "from_point",
+        point: virtualPoint,
+        value: actualValue, // ← ПРАВИЛЬНЕ ЗНАЧЕННЯ
+      });
+    });
+  });
+
   console.log(`📋 Початкова черга: ${updateQueue.length} подій\n`);
 
   return {
